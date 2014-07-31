@@ -1,0 +1,26 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# Folders
+_obj
+_test
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+_testmain.go
+
+*.exe
+
+/src
+/pkg
+/bin
+
+server
+sign
+
+
+Godeps/_workspace/src/github.com/coreos/shortbread
