@@ -32,13 +32,13 @@ type CertificateParameters struct {
 	Key            string // for now it points to the path of the public key to be signed.
 }
 
-var Certificates *CertificateCollection
+var Certificates CertificateCollection
 
 func init() {
-	Certificates = new(CertificateCollection)
+	Certificates = make(CertificateCollection)
 }
 
-func (c *CertificateCollection) New(params CertificateParameters) {
+func (c CertificateCollection) New(params CertificateParameters) {
 	// read private key
 	privateKeyBytes, err := ioutil.ReadFile(params.PrivateKeyPath)
 	check(err)
@@ -81,8 +81,20 @@ func (c *CertificateCollection) New(params CertificateParameters) {
 
 	err = cert.SignCert(rand.Reader, authority)
 	check(err)
-	// write signed cert to a file:
 
+	//add newly created cert to the file.
+
+	certs, ok := c[params.Username]
+
+	if !ok {
+		// key does not exits
+		c[params.Username] = []*ssh.Certificate{cert}
+	} else {
+
+		c[params.Username] = append(certs, cert)
+	}
+
+	// write signed cert to a file:
 	err = ioutil.WriteFile("/Users/shantanu/.ssh/id_rsa-cert-server.pub", ssh.MarshalAuthorizedKey(cert), 0600)
 
 	check(err)
@@ -99,7 +111,7 @@ func incrementHandler(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&params)
 	check(err)
 	Certificates.New(params)
-	// fmt.Println(params)
+	fmt.Println(Certificates)
 	fmt.Fprintf(w, "%d", 200)
 }
 
