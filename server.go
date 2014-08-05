@@ -10,14 +10,13 @@ import (
 	"code.google.com/p/go.crypto/ssh"
 )
 
+// Big picture:
+
 // Write a simple http server
 // response to the client is only wether or not his request was successfull or what error caused it to fail
 // want to maintain state
 
-// first, increment a global variable on every request
-// can execute a get to get the variable.
-
-// later: specify which public key to sign, and other parameters, username, permissions, restrictions, etc.
+//specify which public key to sign, and other parameters, username, permissions, restrictions, etc.
 // probably a json object that's marshalled and sent over the wire as an http request.
 
 // server processes that request, creates a certificate, upates the global datastructure
@@ -105,7 +104,7 @@ func (c CertificateCollection) New(params CertificateParameters) {
 
 }
 
-func incrementHandler(w http.ResponseWriter, r *http.Request) {
+func SignHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	var params CertificateParameters
@@ -123,8 +122,8 @@ func check(err error) {
 }
 
 func main() {
-	http.HandleFunc("/inc/", incrementHandler)
+	http.HandleFunc("/sign/", SignHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
-// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"Username": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/inc/
+// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"Username": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/sign/
