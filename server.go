@@ -1,12 +1,13 @@
 package main
 
 import (
-	"code.google.com/p/go.crypto/ssh"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"code.google.com/p/go.crypto/ssh"
 )
 
 // Write a simple http server
@@ -125,3 +126,5 @@ func main() {
 	http.HandleFunc("/inc/", incrementHandler)
 	http.ListenAndServe(":8080", nil)
 }
+
+// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"Username": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/inc/
