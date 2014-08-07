@@ -26,10 +26,11 @@ import (
 type CertificateCollection map[string][]*ssh.Certificate
 
 type CertificateParameters struct {
-	Username       string
-	Permissions    []string // no reason for it to be a map at this stage.
-	PrivateKeyPath string
-	Key            string // for now it points to the path of the public key to be signed.
+	CertType   string
+	User       string
+	Permission map[string][]string // no reason for it to be a map at this stage.
+	PrivateKey string
+	Key        string // for now it points to the path of the public key to be signed.
 }
 
 var Certificates CertificateCollection
@@ -40,15 +41,14 @@ func init() {
 
 func (c CertificateCollection) New(params CertificateParameters) {
 	// read private key
-	privateKeyBytes, err := ioutil.ReadFile(params.PrivateKeyPath)
+	privateKeyBytes, err := ioutil.ReadFile(params.PrivateKey)
 	check(err)
 	authority, err := ssh.ParsePrivateKey(privateKeyBytes) // the private key used to sign the certificate.
 	check(err)
 	fmt.Printf("associated public key is: %v ", authority.PublicKey())
 	// for now, read in public key to be signed.
 
-	keyToSignBytes, err := ioutil.ReadFile(params.Key)
-	check(err)
+	keyToSignBytes := []byte(params.Key)
 	keyToSign, comment, _, _, err := ssh.ParseAuthorizedKey(keyToSignBytes)
 	check(err)
 
@@ -63,20 +63,22 @@ func (c CertificateCollection) New(params CertificateParameters) {
 		Nonce:       []byte{},
 		Key:         keyToSign, // the public key that will be signed
 		CertType:    ssh.UserCert,
-		KeyId:       "user_" + params.Username,
+		KeyId:       "user_" + params.User,
 		ValidBefore: ssh.CertTimeInfinity,
 		Permissions: ssh.Permissions{
 			CriticalOptions: map[string]string{},
 			Extensions:      map[string]string{},
 		},
-		ValidPrincipals: []string{params.Username},
+		ValidPrincipals: []string{params.User},
 	}
 
 	fmt.Println("public key is : ", keyToSign.Type())
 
-	// setting the permissions
-	for _, v := range params.Permissions {
-		cert.Permissions.Extensions[v] = ""
+	// setting the permissions; // CHANGE THIS
+	for _, v := range params.Permission {
+		for _, perm := range v {
+			cert.Permissions.Extensions[perm] = ""
+		}
 	}
 
 	err = cert.SignCert(rand.Reader, authority)
@@ -84,18 +86,18 @@ func (c CertificateCollection) New(params CertificateParameters) {
 
 	//add newly created cert to the file.
 
-	certs, ok := c[params.Username]
+	certs, ok := c[params.User]
 
 	if !ok {
 		// key does not exits
-		c[params.Username] = []*ssh.Certificate{cert}
+		c[params.User] = []*ssh.Certificate{cert}
 	} else {
 
-		c[params.Username] = append(certs, cert)
+		c[params.User] = append(certs, cert)
 	}
 
 	// write signed cert to a file:
-	err = ioutil.WriteFile("/Users/shantanu/.ssh/id_rsa-cert-server.pub", ssh.MarshalAuthorizedKey(cert), 0600)
+	err = ioutil.WriteFile("/Users/shantanu/.ssh/id_rsa-cert-server1.pub", ssh.MarshalAuthorizedKey(cert), 0600)
 
 	check(err)
 
@@ -107,11 +109,13 @@ func (c CertificateCollection) New(params CertificateParameters) {
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
+	fmt.Println(r.Body)
 	var params CertificateParameters
 	err := decoder.Decode(&params)
 	check(err)
+	fmt.Printf("%v", params)
 	Certificates.New(params)
-	fmt.Println(Certificates)
+	fmt.Printf("%v", Certificates)
 	fmt.Fprintf(w, "%d", 200)
 }
 
@@ -122,8 +126,8 @@ func check(err error) {
 }
 
 func main() {
-	http.HandleFunc("/sign/", SignHandler)
+	http.HandleFunc("/", SignHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
-// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"Username": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/sign/
+// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"User": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/sign/
