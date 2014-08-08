@@ -1,0 +1,97 @@
+{
+    "kind": "discovery#restDescription",
+    "discoveryVersion": "v1",
+    "id": "client:v1",
+    "name": "client",
+    "version": "v1",
+    "auth": {},
+    "title": "API to communicate with a centralized CA",
+    "description": "Lets you revoke, create or modify a certificate",
+    "documentationLink": "https://github.com/philips/shortbread", 
+    "protocol": "rest", 
+    "rootUrl": "https://www.example.com",
+    "servicePath": "/v1/",
+    "batchPath": "batch", 
+
+    "parameters": {
+	"alt": {
+	    "type": "string",
+	    "description": "Data format for the response.",
+	    "default": "json",
+	    "enum": [
+	        "json"
+	    ],
+	    "enumDescriptions": [
+	        "Responses with Content-Type of application/json"
+	    ],
+	    "location": "query"
+	},
+	"key": {
+	    "type": "string",
+	    "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+	    "location": "query"
+		}
+	  },
+    "schemas": {
+	"Permissions": {	
+		"id": "Permissions", 
+		"type": "object",
+			"properties": {
+				"extensions": {
+					"type": "array", 
+					"items": {
+						"type" : "string"
+						}
+					}, 
+				"criticalOptions": {
+					"type": "array", 
+					"items": {
+						"type" : "string"
+					}
+				}	
+			}
+		},
+	"CertificateInfo": {
+		"id": "CertificateInfo", 
+		"type": "object", 
+		"properties": {
+			"User": {
+				"type": "string"
+				}, 
+			"Key": {
+				"type": "string", 
+				"format": "byte"
+				}, 
+			"Permission": {
+				"$ref": "Permissions"
+				}, 
+			"CertType": {
+				"type": "string", 
+				"description": "only accepts HOST or USER"
+				},
+			"PrivateKey": {
+				"type": "string", 
+				"description": "path of the private key on the CA server"
+				}
+			}
+		} 
+    },
+    "resources": {
+    	"cert": {
+    		"methods": {
+    			"sign": {
+    				"id": "client.cert.sign", 
+    				"path": "sign", 
+    				"httpMethod": "POST", 
+    				"request": {
+    					"$ref": "CertificateInfo", 
+    					"parameterName": "certParams"
+	    			}
+    			}
+    		}
+    	}
+	}
+}
+    
+    
+

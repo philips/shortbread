@@ -19,8 +19,4 @@ _testmain.go
 /pkg
 /bin
 
-server
-sign
-
-
 Godeps/_workspace/src/github.com/coreos/shortbread

@@ -1,0 +1,13 @@
+#!/bin/sh 
+
+set -e 
+
+. ./build-api
+
+SERVER_PATH="bin/server"
+CLI_PATH="bin/shortbreadctl"
+
+go build -o ${SERVER_PATH} server/server.go
+go build -o ${CLI_PATH} cli/shortbreadctl.go
+
+
