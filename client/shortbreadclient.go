@@ -84,6 +84,113 @@ type Permissions struct {
 	Extensions []string `json:"extensions,omitempty"`
 }
 
+type RevokeCertificate struct {
+	Key string `json:"Key,omitempty"`
+
+	User string `json:"User,omitempty"`
+}
+
+type UserList struct {
+	List []string `json:"list,omitempty"`
+}
+
+// method id "client.cert.list":
+
+type CertListCall struct {
+	s    *Service
+	opt_ map[string]interface{}
+}
+
+// List:
+func (r *CertService) List() *CertListCall {
+	c := &CertListCall{s: r.s, opt_: make(map[string]interface{})}
+	return c
+}
+
+func (c *CertListCall) Do() (*UserList, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "get")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *UserList
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "GET",
+	//   "id": "client.cert.list",
+	//   "path": "get",
+	//   "response": {
+	//     "$ref": "UserList"
+	//   }
+	// }
+
+}
+
+// method id "client.cert.revoke":
+
+type CertRevokeCall struct {
+	s                 *Service
+	revokecertificate *RevokeCertificate
+	opt_              map[string]interface{}
+}
+
+// Revoke:
+func (r *CertService) Revoke(revokecertificate *RevokeCertificate) *CertRevokeCall {
+	c := &CertRevokeCall{s: r.s, opt_: make(map[string]interface{})}
+	c.revokecertificate = revokecertificate
+	return c
+}
+
+func (c *CertRevokeCall) Do() error {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.revokecertificate)
+	if err != nil {
+		return err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "revoke")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "httpMethod": "PUT",
+	//   "id": "client.cert.revoke",
+	//   "path": "revoke",
+	//   "request": {
+	//     "$ref": "RevokeCertificate",
+	//     "parameterName": "revokeCertParams"
+	//   }
+	// }
+
+}
+
 // method id "client.cert.sign":
 
 type CertSignCall struct {

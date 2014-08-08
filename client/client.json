@@ -33,6 +33,18 @@
 		}
 	  },
     "schemas": {
+    "UserList":{
+    	"id": "UserList", 
+    	"type": "object",
+    	"properties":{
+    		"list": {
+    			"type" : "array", 
+    			"items": {
+    				"type": "string"
+    			}
+    		}
+    	} 
+    },
 	"Permissions": {	
 		"id": "Permissions", 
 		"type": "object",
@@ -51,6 +63,19 @@
 				}	
 			}
 		},
+	"RevokeCertificate":{
+		"id": "RevokeCertificate", 
+		"type": "object", 
+		"properties": {
+			"User": {
+				"type": "string"
+			}, 
+			"Key": {
+				"type": "string", 
+				"format": "byte"
+			}
+		}
+	},
 	"CertificateInfo": {
 		"id": "CertificateInfo", 
 		"type": "object", 
@@ -87,6 +112,23 @@
     					"$ref": "CertificateInfo", 
     					"parameterName": "certParams"
 	    			}
+    			},
+    			"list":{
+    				"id": "client.cert.list", 
+    				"path": "get", 
+    				"httpMethod": "GET", 
+    				"response":{
+    					"$ref": "UserList"
+    				}
+    			},
+    			"revoke":{
+    				"id": "client.cert.revoke", 
+    				"path": "revoke", 
+    				"httpMethod": "PUT", 
+    				"request": {
+    					"$ref": "RevokeCertificate", 
+    					"parameterName": "revokeCertParams"
+    				}
     			}
     		}
     	}
