@@ -8,7 +8,11 @@ import (
 	"os"
 	"strings"
 
+<<<<<<< HEAD
 	"github.com/coreos/shortbread/api"
+=======
+	"github.com/coreos/shortbread/client"
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 )
 
 const SHORTBREADCTL_URL = "SHORTBREADCTL_URL"
@@ -35,7 +39,11 @@ func (i *permissions) Type() string {
 	return "permissions"
 }
 
+<<<<<<< HEAD
 func getHTTPClientService() (*api.Service, error) {
+=======
+func getHTTPClientService() (*client.Service, error) {
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 	dialFunc := func(string, string) (net.Conn, error) {
 		return net.Dial("tcp", "127.0.0.1:8080")
 	}
@@ -48,7 +56,11 @@ func getHTTPClientService() (*api.Service, error) {
 		Transport: &trans,
 	}
 
+<<<<<<< HEAD
 	svc, err := api.New(hc)
+=======
+	svc, err := client.New(hc)
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +70,14 @@ func getHTTPClientService() (*api.Service, error) {
 }
 
 func loadPublicKey(path string) string {
+<<<<<<< HEAD
+=======
+	// will catch empty public key error on the server side.
+	if path == "" {
+		return path
+	}
+
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 	keyToSignBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)

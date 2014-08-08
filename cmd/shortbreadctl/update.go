@@ -5,7 +5,11 @@ import (
 	"os"
 
 	"github.com/coreos/cobra"
+<<<<<<< HEAD
 	"github.com/coreos/shortbread/api"
+=======
+	"github.com/coreos/shortbread/client"
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 )
 
 var (
@@ -41,9 +45,15 @@ func issueRequest(c *cobra.Command, args []string) {
 		panic(err)
 	}
 
+<<<<<<< HEAD
 	crtInfo := &api.CertificateInfo{
 		CertType: certType, // TODO: warn user about using default value.
 		Permission: &api.Permissions{
+=======
+	crtInfo := &client.CertificateInfo{
+		CertType: certType, // TODO: warn user about using default value.
+		Permission: &client.Permissions{
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 			Extensions:      extensions,
 			CriticalOptions: criticalOptions,
 		},
@@ -52,7 +62,11 @@ func issueRequest(c *cobra.Command, args []string) {
 		PrivateKey: privateKey,
 	}
 
+<<<<<<< HEAD
 	crtSvc := api.NewCertService(svc)
+=======
+	crtSvc := client.NewCertService(svc)
+>>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 	err = crtSvc.Sign(crtInfo).Do()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())

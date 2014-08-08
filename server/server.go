@@ -10,17 +10,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 
 	"code.google.com/p/go.crypto/ssh"
-	"github.com/coreos/shortbread/api"
+	"github.com/coreos/shortbread/client"
 )
-
-type CertificatesAndMetaData struct {
-	signedCert   *ssh.Certificate
-	changed      bool
-	transferData *api.CertificateAndPrivateKey
-}
 
 type CertificateCollection map[[16]byte][]*CertificatesAndMetaData
 
@@ -41,34 +34,34 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 		return err
 	}
 
-	keyToSignBytes := []byte(params.Key)
+	keyToSignBytes := []byte(certInfo.Key)
 	keyToSign, _, _, _, err := ssh.ParseAuthorizedKey(keyToSignBytes)
 	if err != nil {
 		return err
 	}
 
 	if keyToSign == nil {
-		panic("public key is nil")
+		return errors.New("public key is nil")
 	}
 
 	cert := &ssh.Certificate{
 		Nonce:       []byte{},
 		Key:         keyToSign,
 		CertType:    ssh.UserCert,
-		KeyId:       "user_" + params.User,
+		KeyId:       "user_" + certInfo.User,
 		ValidBefore: ssh.CertTimeInfinity, // this will change in later versions
 		Permissions: ssh.Permissions{
 			CriticalOptions: map[string]string{},
 			Extensions:      map[string]string{},
 		},
-		ValidPrincipals: []string{params.User},
+		ValidPrincipals: []string{certInfo.User},
 	}
 
-	for _, perm := range params.Permission.Extensions {
+	for _, perm := range certInfo.Permission.Extensions {
 		cert.Permissions.Extensions[perm] = ""
 	}
 
-	for _, criticalOpts := range params.Permission.CriticalOptions {
+	for _, criticalOpts := range certInfo.Permission.CriticalOptions {
 		cert.Permissions.CriticalOptions[criticalOpts] = ""
 	}
 
@@ -137,6 +130,20 @@ func (c CertificateCollection) Revoke(revokeInfo api.RevokeCertificate) error {
 	return nil
 }
 
+// Revoke takes an username as argument and deletes all certificates associated with it.
+// TODO: add more fine grained deletion allowing them to specify host names.
+// eg shortbreadctl revoke -u username123 -h *.example.org will only revoke access to all hosts that match the provided regex.
+func (c CertificateCollection) Revoke(revokeInfo client.RevokeCertificate) error {
+	user := revokeInfo.User
+	_, ok := c[user]
+	if !ok {
+		return errors.New("username does not exist")
+	}
+
+	delete(c, user)
+	return nil
+}
+
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
@@ -152,6 +159,7 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 	err = Certificates.New(params)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+<<<<<<< HEAD
 		fmt.Fprintf(w, "%s", err.Error())
 	}
 }
@@ -204,6 +212,18 @@ func getFingerPrint(publicKey string) (fp [16]byte, err error) {
 	}
 	fp = md5.Sum(data)
 	return fp, nil
+}
+
+func GetHandler(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Path
+	fmt.Println("url path is ", url)
+	users := new(client.UserList)
+	users.List = make([]string, 0)
+	for k, _ := range Certificates {
+		users.List = append(users.List, k)
+	}
+	enc := json.NewEncoder(w)
+	enc.Encode(users)
 }
 
 func main() {
