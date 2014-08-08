@@ -65,6 +65,7 @@ To build the server and cli simply execute:
 * Warn user about not specifying a certType value
 * move from hardcoded validBefore and validAfter to user-specified values
 * use disk to populate datastructure on startup
+
 **cli/shortbreadctl.go**
 
 * add sub-commands and appropriate run functions

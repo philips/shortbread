@@ -110,5 +110,3 @@ func main() {
 	http.HandleFunc("/v1/", SignHandler)
 	http.ListenAndServe(":8080", nil)
 }
-
-// curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d ' {"User": "shantanu", "Permissions": ["permit-pty"], "PrivateKeyPath": "/Users/shantanu/.ssh/users_ca","Key": "/Users/shantanu/.ssh/id_rsa.pub" } '  http://localhost:8080/sign/

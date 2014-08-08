@@ -100,7 +100,6 @@ func issueRequest(c *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func init() {
