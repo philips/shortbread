@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"code.google.com/p/go.crypto/ssh"
 )
@@ -73,7 +74,7 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 		return err
 	}
 
-	//add newly created cert to the global map + write to local disk (for now).
+	// add newly created cert to the global map + write to local disk (for now).
 	certs, ok := c[params.User]
 	if !ok {
 		c[params.User] = []*ssh.Certificate{cert}
@@ -81,7 +82,8 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 		c[params.User] = append(certs, cert)
 	}
 
-	err = ioutil.WriteFile("/Users/shantanu/.ssh/id_rsa-cert-server1.pub", ssh.MarshalAuthorizedKey(cert), 0600)
+	fp := os.Getenv("HOME") + "/.ssh/id_rsa-cert.pub"
+	err = ioutil.WriteFile(fp, ssh.MarshalAuthorizedKey(cert), 0600)
 	if err != nil {
 		return err
 	}
