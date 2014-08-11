@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/coreos/cobra"
+	"github.com/coreos/shortbread/client"
 )
 
 var (
@@ -16,4 +17,23 @@ func init() {
 		Short: "revoke the certificate issued to a particular user",
 		Run:   issueRevoke,
 	}
+}
+
+func issueRevoke(c *cobra.Command, args []string) {
+	svc, err := getHTTPClientService() //TODO: modify function to accept a value (user configured base URL)
+	if err != nil {
+		panic(err)
+	}
+
+	revokeCrt := &client.RevokeCertificate{
+		User: user,
+		Key:  key,
+	}
+
+	crtSvc := client.NewCertService(svc)
+	err = crtSvc.Revoke(revokeCrt).Do()
+	if err != nil {
+		panic(err)
+	}
+
 }

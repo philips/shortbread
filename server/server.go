@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +20,11 @@ type CertificateParameters struct {
 	Permission map[string][]string
 	PrivateKey string
 	Key        string //public key (base 64 encoded bytes converted to string)
+}
+
+type RevokeInfo struct {
+	User string
+	Key  string
 }
 
 var Certificates CertificateCollection
@@ -90,6 +96,17 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 	return nil
 }
 
+func (c CertificateCollection) Revoke(revokeInfo RevokeInfo) error {
+	key := revokeInfo.Key
+
+	if _, ok := c[key]; !ok {
+		return errors.New("user %s does not exist", revokeInfo.User)
+	}
+
+	delete(c, key)
+	return nil
+}
+
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
@@ -107,7 +124,26 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO abstract the decode code into a common function, will have to use type inference for that to work.
+func RevokeHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var revokeInfo RevokeInfo
+
+	err := decoder.Decode(&revokeInfo)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err.Error())
+		return
+	}
+
+	err = Certificates.Revoke(revokeInfo)
+	if err != nil {
+		fmt.Fprintf(w, "%s", err.Error())
+	}
+
+}
+
 func main() {
-	http.HandleFunc("/v1/", SignHandler)
+	http.HandleFunc("/v1/sign", SignHandler)
+	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.ListenAndServe(":8080", nil)
 }

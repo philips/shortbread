@@ -6,6 +6,7 @@ var (
 	shortbreadCtl *cobra.Command
 	user          string
 	key           string
+	baseUrl       string
 )
 
 func init() {
@@ -14,7 +15,8 @@ func init() {
 		Short: "A command line tool to interact with the CA server and issue/revoke/modify user and host certificates",
 	}
 	shortbreadCtl.PersistentFlags().StringVarP(&user, "username", "u", "", "username of the entity to whom the certificate is issued")
-	addUser.PersistentFlags().StringVarP(&key, "key", "k", "", "bears the path to the public key that will be signed by the CA's private key")
+	shortbreadCtl.PersistentFlags().StringVarP(&key, "key", "k", "", "bears the path to the public key that will be signed by the CA's private key")
+	shortbreadCtl.PersistentFlags().StringVarP(&baseUrl, "server", "s", "", "base url for the CA server")
 }
 
 func main() {

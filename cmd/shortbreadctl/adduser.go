@@ -13,8 +13,6 @@ var (
 	extensions      permissions
 	criticalOptions permissions
 	certType        string
-	baseUrl         string // location for the CA server
-
 )
 
 func init() {
@@ -30,7 +28,7 @@ func init() {
 	addUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
 	addUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
 	addUser.Flags().StringVarP(&certType, "cert", "c", "", "choose from \"USER\" or \"HOST\"")
-	addUser.Flags().StringVarP(&baseUrl, "server", "s", "", "base url for the CA server")
+
 }
 
 // issueRequest parses the command line flags and issues a request to the server
