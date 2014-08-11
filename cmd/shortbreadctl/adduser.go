@@ -1,4 +1,4 @@
-package command
+package main
 
 import (
 	"github.com/coreos/cobra"
@@ -7,11 +7,9 @@ import (
 
 var (
 	addUser         *cobra.Command
-	key             string
 	privateKey      string
 	validBefore     int // in days
 	validAfter      int // in days
-	user            string
 	extensions      permissions
 	criticalOptions permissions
 	certType        string
@@ -26,11 +24,9 @@ func init() {
 		Run:   issueRequest,
 	}
 
-	addUser.Flags().StringVarP(&key, "key", "k", "", "bears the path to the public key that will be signed by the CA's private key")
 	addUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
 	addUser.Flags().IntVarP(&validBefore, "before", "b", 0, "number of days the certificate is valid")
 	addUser.Flags().IntVarP(&validAfter, "after", "a", 0, "number of days before the certificate becomes valid")
-	addUser.Flags().StringVarP(&user, "username", "u", "", "username of the entity to whom the certificate is issued")
 	addUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
 	addUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
 	addUser.Flags().StringVarP(&certType, "cert", "c", "", "choose from \"USER\" or \"HOST\"")
@@ -60,9 +56,4 @@ func issueRequest(c *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func GetAddUser() *cobra.Command {
-
-	return addUser
 }
