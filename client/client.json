@@ -51,6 +51,19 @@
 				}	
 			}
 		},
+	"RevokeCertificate":{
+		"id": "RevokeCertificate", 
+		"type": "object", 
+		"properties": {
+			"User": {
+				"type": "string"
+			}, 
+			"Key": {
+				"type": "string", 
+				"format": "byte"
+			}
+		}
+	},
 	"CertificateInfo": {
 		"id": "CertificateInfo", 
 		"type": "object", 
@@ -87,6 +100,15 @@
     					"$ref": "CertificateInfo", 
     					"parameterName": "certParams"
 	    			}
+    			}, 
+    			"revoke":{
+    				"id": "client.cert.revoke", 
+    				"path": "revoke", 
+    				"httpMethod": "PUT", 
+    				"request": {
+    					"$ref": "RevokeCertificate", 
+    					"parameterName": "revokeCertParams"
+    				}
     			}
     		}
     	}
