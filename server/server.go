@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -100,7 +99,7 @@ func (c CertificateCollection) Revoke(revokeInfo RevokeInfo) error {
 	key := revokeInfo.Key
 
 	if _, ok := c[key]; !ok {
-		return errors.New("user %s does not exist", revokeInfo.User)
+		return fmt.Errorf("user %s does not exist", revokeInfo.User)
 	}
 
 	delete(c, key)
@@ -114,32 +113,36 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&params)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", err.Error())
 		return
 	}
 
 	err = Certificates.New(params)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", err.Error())
 	}
 }
 
-// TODO abstract the decode code into a common function, will have to use type inference for that to work.
+// TODO: abstract the decode code into a common function, will have to use type inference for that to work.
+// TODO: verify correct http error code being used.
 func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var revokeInfo RevokeInfo
 
 	err := decoder.Decode(&revokeInfo)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", err.Error())
 		return
 	}
 
 	err = Certificates.Revoke(revokeInfo)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", err.Error())
 	}
-
 }
 
 func main() {
