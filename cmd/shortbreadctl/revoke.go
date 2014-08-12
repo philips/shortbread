@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/coreos/cobra"
 	"github.com/coreos/shortbread/client"
 )
@@ -27,13 +30,12 @@ func issueRevoke(c *cobra.Command, args []string) {
 
 	revokeCrt := &client.RevokeCertificate{
 		User: user,
-		Key:  key,
+		Key:  loadPublicKey(key),
 	}
 
 	crtSvc := client.NewCertService(svc)
 	err = crtSvc.Revoke(revokeCrt).Do()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
-
 }
