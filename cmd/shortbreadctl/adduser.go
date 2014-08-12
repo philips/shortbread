@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/coreos/cobra"
 	"github.com/coreos/shortbread/client"
 )
 
 var (
-	addUser         *cobra.Command
+	updateUser      *cobra.Command
 	privateKey      string
 	validBefore     int // in days
 	validAfter      int // in days
@@ -16,18 +19,18 @@ var (
 )
 
 func init() {
-	addUser = &cobra.Command{
-		Use:   "adduser",
-		Short: "generate a certificate for a new user",
+	updateUser = &cobra.Command{
+		Use:   "update",
+		Short: "generate a certificate for a new user or modify an existing one",
 		Run:   issueRequest,
 	}
 
-	addUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
-	addUser.Flags().IntVarP(&validBefore, "before", "b", 0, "number of days the certificate is valid")
-	addUser.Flags().IntVarP(&validAfter, "after", "a", 0, "number of days before the certificate becomes valid")
-	addUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
-	addUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
-	addUser.Flags().StringVarP(&certType, "cert", "c", "", "choose from \"USER\" or \"HOST\"")
+	updateUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
+	updateUser.Flags().IntVarP(&validBefore, "before", "b", 0, "number of days the certificate is valid")
+	updateUser.Flags().IntVarP(&validAfter, "after", "a", 0, "number of days before the certificate becomes valid")
+	updateUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
+	updateUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
+	updateUser.Flags().StringVarP(&certType, "cert", "c", "", "choose from \"USER\" or \"HOST\"")
 
 }
 
@@ -52,6 +55,6 @@ func issueRequest(c *cobra.Command, args []string) {
 	crtSvc := client.NewCertService(svc)
 	err = crtSvc.Sign(crtInfo).Do()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
 }
