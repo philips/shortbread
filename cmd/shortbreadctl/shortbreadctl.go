@@ -20,7 +20,7 @@ func init() {
 }
 
 func main() {
-	shortbreadCtl.AddCommand(addUser)
+	shortbreadCtl.AddCommand(updateUser)
 	shortbreadCtl.AddCommand(revokeUser)
 	shortbreadCtl.Execute()
 }
