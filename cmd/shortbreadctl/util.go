@@ -45,7 +45,7 @@ func getHTTPClientService() (*api.Service, error) {
 func getHTTPClientService() (*client.Service, error) {
 >>>>>>> 58afb88... Corrected formatting errors from PR, added revoke and list sub-commands,using the usernames as keys, one command to add and modify an user.
 	dialFunc := func(string, string) (net.Conn, error) {
-		return net.Dial("tcp", "127.0.0.1:8080")
+		return net.Dial("tcp", "54.166.129.131:80")
 	}
 
 	trans := http.Transport{

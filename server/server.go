@@ -91,11 +91,6 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 		c[fingerprint] = append(certs, certAndKey)
 	}
 
-	// err = ioutil.WriteFile(os.ExpandEnv("$HOME/.ssh/id_rsa-cert.pub"), ssh.MarshalAuthorizedKey(cert), 0600)
-	// if err != nil {
-	// 	return err
-	// }
-
 	return nil
 }
 
@@ -159,7 +154,6 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 	err = Certificates.New(params)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-<<<<<<< HEAD
 		fmt.Fprintf(w, "%s", err.Error())
 	}
 }

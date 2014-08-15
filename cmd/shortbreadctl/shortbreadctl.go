@@ -71,4 +71,4 @@ func main() {
 	shortbreadCtl.Execute()
 }
 
-// bin/shortbreadctl adduser -k /Users/shantanu/.ssh/id_rsa.pub -p /Users/shantanu/.ssh/users_ca -u shantanu -e permit-pty -c USER
+// bin/shortbreadctl update -k /Users/shantanu/.ssh/id_rsa.pub -p /Users/shantanu/.ssh/users_ca -u shantanu -e permit-pty -c USER
