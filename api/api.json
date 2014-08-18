@@ -43,6 +43,9 @@
     		},
     		"privateKey": {
     			"type": "string"
+    		},
+    		"changed": {
+    			"type": "boolean"
     		}
     	}
     },

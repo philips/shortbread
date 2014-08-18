@@ -67,6 +67,8 @@ type CertService struct {
 type CertificateAndPrivateKey struct {
 	Cert string `json:"cert,omitempty"`
 
+	Changed bool `json:"changed,omitempty"`
+
 	PrivateKey string `json:"privateKey,omitempty"`
 }
 

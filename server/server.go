@@ -16,12 +16,7 @@ import (
 	"github.com/coreos/shortbread/api"
 )
 
-type CertificateAndPrivateKey struct {
-	cert       *ssh.Certificate
-	privateKey string
-	changed    bool
-}
-type CertificateCollection map[[16]byte][]CertificateAndPrivateKey
+type CertificateCollection map[[16]byte][]*api.CertificateAndPrivateKey
 
 var Certificates CertificateCollection
 
@@ -174,7 +169,13 @@ func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 
 func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	fingerprint, _ := getFingerPrint(strings.SplitN(r.URL.Path, "/", 4)[3])
-	fmt.Printf("% x", fingerprint)
+	if certs, ok := Certificates[fingerprint]; !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "%s", "key does not exist.")
+		return
+	}
+
+	// encode the list here
 }
 
 // Fingerprint for a public key is the md5 sum of the base64 encoded key.
