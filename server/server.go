@@ -12,9 +12,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/coreos/shortbread/client"
-
 	"code.google.com/p/go.crypto/ssh"
+	"github.com/coreos/shortbread/api"
 )
 
 type CertificateAndPrivateKey struct {
@@ -29,7 +28,7 @@ func init() {
 	Certificates = make(CertificateCollection)
 }
 
-func (c CertificateCollection) New(params client.CertificateInfo) error {
+func (c CertificateCollection) New(params api.CertificateInfo) error {
 	privateKeyBytes, err := ioutil.ReadFile(os.ExpandEnv("$SHORTBREAD_PRVT_KEY") + string(os.PathSeparator) + params.PrivateKey)
 	if err != nil {
 		return err
@@ -104,7 +103,7 @@ func (c CertificateCollection) New(params client.CertificateInfo) error {
 // Revoke uses the public key provided in the request to delete the corresponding certificate
 // from the map. However, if a username is provided then a certificate is deleted only if the fingerprint is found in the map
 // and the user is listed as a valid principal in the certificate. Reports an error otherwise.
-func (c CertificateCollection) Revoke(revokeInfo client.RevokeCertificate) error {
+func (c CertificateCollection) Revoke(revokeInfo api.RevokeCertificate) error {
 	fingerprint, err := getFingerPrint(revokeInfo.Key)
 	if err != nil {
 		return err
@@ -135,7 +134,7 @@ func (c CertificateCollection) Revoke(revokeInfo client.RevokeCertificate) error
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var params client.CertificateInfo
+	var params api.CertificateInfo
 
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -155,7 +154,7 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 // TODO: verify correct http error code being used.
 func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var revokeInfo client.RevokeCertificate
+	var revokeInfo api.RevokeCertificate
 
 	err := decoder.Decode(&revokeInfo)
 	if err != nil {

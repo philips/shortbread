@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/coreos/shortbread/client"
+	"github.com/coreos/shortbread/api"
 )
 
 const SHORTBREADCTL_URL = "SHORTBREADCTL_URL"
@@ -35,7 +35,7 @@ func (i *permissions) Type() string {
 	return "permissions"
 }
 
-func getHTTPClientService() (*client.Service, error) {
+func getHTTPClientService() (*api.Service, error) {
 	dialFunc := func(string, string) (net.Conn, error) {
 		return net.Dial("tcp", "127.0.0.1:8080")
 	}
@@ -48,7 +48,7 @@ func getHTTPClientService() (*client.Service, error) {
 		Transport: &trans,
 	}
 
-	svc, err := client.New(hc)
+	svc, err := api.New(hc)
 	if err != nil {
 		return nil, err
 	}

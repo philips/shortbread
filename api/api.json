@@ -1,8 +1,8 @@
 {
     "kind": "discovery#restDescription",
     "discoveryVersion": "v1",
-    "id": "client:v1",
-    "name": "client",
+    "id": "api:v1",
+    "name": "api",
     "version": "v1",
     "auth": {},
     "title": "API to communicate with a centralized CA",

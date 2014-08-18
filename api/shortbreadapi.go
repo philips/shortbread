@@ -1,13 +1,13 @@
-// Package client provides access to the API to communicate with a centralized CA.
+// Package api provides access to the API to communicate with a centralized CA.
 //
 // See https://github.com/philips/shortbread
 //
 // Usage example:
 //
-//   import "code.google.com/p/google-api-go-client/client/v1"
+//   import "code.google.com/p/google-api-go-client/api/v1"
 //   ...
-//   clientService, err := client.New(oauthHttpClient)
-package client
+//   apiService, err := api.New(oauthHttpClient)
+package api
 
 import (
 	"bytes"
@@ -34,8 +34,8 @@ var _ = googleapi.Version
 var _ = errors.New
 var _ = strings.Replace
 
-const apiId = "client:v1"
-const apiName = "client"
+const apiId = "api:v1"
+const apiName = "api"
 const apiVersion = "v1"
 const basePath = "https://www.example.com/v1/"
 
