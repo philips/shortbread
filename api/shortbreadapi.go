@@ -64,6 +64,12 @@ type CertService struct {
 	s *Service
 }
 
+type CertificateAndPrivateKey struct {
+	Cert string `json:"cert,omitempty"`
+
+	PrivateKey string `json:"privateKey,omitempty"`
+}
+
 type CertificateInfo struct {
 	// CertType: only accepts HOST or USER
 	CertType string `json:"CertType,omitempty"`
@@ -78,6 +84,10 @@ type CertificateInfo struct {
 	User string `json:"User,omitempty"`
 }
 
+type CertificatesWithKey struct {
+	List []*CertificateAndPrivateKey `json:"list,omitempty"`
+}
+
 type Permissions struct {
 	CriticalOptions []string `json:"criticalOptions,omitempty"`
 
@@ -90,7 +100,70 @@ type RevokeCertificate struct {
 	User string `json:"User,omitempty"`
 }
 
-// method id "client.cert.revoke":
+// method id "api.cert.getCerts":
+
+type CertGetCertsCall struct {
+	s    *Service
+	opt_ map[string]interface{}
+}
+
+// GetCerts:
+func (r *CertService) GetCerts() *CertGetCertsCall {
+	c := &CertGetCertsCall{s: r.s, opt_: make(map[string]interface{})}
+	return c
+}
+
+// PublicKey sets the optional parameter "publicKey":
+func (c *CertGetCertsCall) PublicKey(publicKey string) *CertGetCertsCall {
+	c.opt_["publicKey"] = publicKey
+	return c
+}
+
+func (c *CertGetCertsCall) Do() (*CertificatesWithKey, error) {
+	var body io.Reader = nil
+	params := make(url.Values)
+	params.Set("alt", "json")
+	if v, ok := c.opt_["publicKey"]; ok {
+		params.Set("publicKey", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "getcerts")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	var ret *CertificatesWithKey
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "GET",
+	//   "id": "api.cert.getCerts",
+	//   "parameters": {
+	//     "publicKey": {
+	//       "format": "bytes",
+	//       "location": "path",
+	//       "required": "true",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "getcerts",
+	//   "response": {
+	//     "$ref": "CertificatesWithKey"
+	//   }
+	// }
+
+}
+
+// method id "api.cert.revoke":
 
 type CertRevokeCall struct {
 	s                 *Service
@@ -131,7 +204,7 @@ func (c *CertRevokeCall) Do() error {
 	return nil
 	// {
 	//   "httpMethod": "PUT",
-	//   "id": "client.cert.revoke",
+	//   "id": "api.cert.revoke",
 	//   "path": "revoke",
 	//   "request": {
 	//     "$ref": "RevokeCertificate",
@@ -141,7 +214,7 @@ func (c *CertRevokeCall) Do() error {
 
 }
 
-// method id "client.cert.sign":
+// method id "api.cert.sign":
 
 type CertSignCall struct {
 	s               *Service
@@ -182,7 +255,7 @@ func (c *CertSignCall) Do() error {
 	return nil
 	// {
 	//   "httpMethod": "POST",
-	//   "id": "client.cert.sign",
+	//   "id": "api.cert.sign",
 	//   "path": "sign",
 	//   "request": {
 	//     "$ref": "CertificateInfo",

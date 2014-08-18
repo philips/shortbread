@@ -33,11 +33,6 @@
 		}
 	  },
     "schemas": {
-    "MyPublicKey":{
-    	"id": "MyPublicKey", 
-    	"type": "string", 
-    	"format": "bytes"
-    },
     "CertificateAndPrivateKey":{
     	"id": "CertificateAndPrivateKey",
     	"type": "object", 
@@ -48,6 +43,18 @@
     		},
     		"privateKey": {
     			"type": "string"
+    		}
+    	}
+    },
+    "CertificatesWithKey": {
+    	"id": "CertificatesWithKey", 
+    	"type": "object",
+    	"properties":{
+    		"list": {
+    			"type": "array", 
+    			"items": {
+    				"$ref": "CertificateAndPrivateKey"
+    			}
     		}
     	}
     },
@@ -132,11 +139,16 @@
     				"id": "api.cert.getCerts", 
     				"path": "getcerts", 
     				"httpMethod": "GET", 
-    				"request":{
-    					"$ref": "MyPublicKey"
+    				"parameters":{
+    					"publicKey":{
+    						"type": "string", 
+    						"format": "bytes",
+    						"location": "path",
+    						"required": "true"
+    					}
     				},
     				"response": {
-    					"$ref": "CertificateAndPrivateKey"
+    					"$ref": "CertificatesWithKey"
     				}
     			}
     		}
