@@ -33,6 +33,24 @@
 		}
 	  },
     "schemas": {
+    "MyPublicKey":{
+    	"id": "MyPublicKey", 
+    	"type": "string", 
+    	"format": "bytes"
+    },
+    "CertificateAndPrivateKey":{
+    	"id": "CertificateAndPrivateKey",
+    	"type": "object", 
+    	"properties":{
+    		"cert": {
+    			"type": "string", 
+    			"format": "bytes"
+    		},
+    		"privateKey": {
+    			"type": "string"
+    		}
+    	}
+    },
 	"Permissions": {	
 		"id": "Permissions", 
 		"type": "object",
@@ -93,7 +111,7 @@
     	"cert": {
     		"methods": {
     			"sign": {
-    				"id": "client.cert.sign", 
+    				"id": "api.cert.sign", 
     				"path": "sign", 
     				"httpMethod": "POST", 
     				"request": {
@@ -102,12 +120,23 @@
 	    			}
     			}, 
     			"revoke":{
-    				"id": "client.cert.revoke", 
+    				"id": "api.cert.revoke", 
     				"path": "revoke", 
     				"httpMethod": "PUT", 
     				"request": {
     					"$ref": "RevokeCertificate", 
     					"parameterName": "revokeCertParams"
+    				}
+    			},
+    			"getCerts":{
+    				"id": "api.cert.getCerts", 
+    				"path": "getcerts", 
+    				"httpMethod": "GET", 
+    				"request":{
+    					"$ref": "MyPublicKey"
+    				},
+    				"response": {
+    					"$ref": "CertificateAndPrivateKey"
     				}
     			}
     		}
