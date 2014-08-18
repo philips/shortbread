@@ -103,13 +103,15 @@ type RevokeCertificate struct {
 // method id "api.cert.getCerts":
 
 type CertGetCertsCall struct {
-	s    *Service
-	opt_ map[string]interface{}
+	s         *Service
+	publicKey string
+	opt_      map[string]interface{}
 }
 
 // GetCerts:
-func (r *CertService) GetCerts() *CertGetCertsCall {
+func (r *CertService) GetCerts(publicKey string) *CertGetCertsCall {
 	c := &CertGetCertsCall{s: r.s, opt_: make(map[string]interface{})}
+	c.publicKey = publicKey
 	return c
 }
 
@@ -126,10 +128,12 @@ func (c *CertGetCertsCall) Do() (*CertificatesWithKey, error) {
 	if v, ok := c.opt_["publicKey"]; ok {
 		params.Set("publicKey", fmt.Sprintf("%v", v))
 	}
-	urls := googleapi.ResolveRelative(c.s.BasePath, "getcerts")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "getcerts/{publicKey}")
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
-	googleapi.SetOpaque(req.URL)
+	googleapi.Expand(req.URL, map[string]string{
+		"publicKey": c.publicKey,
+	})
 	req.Header.Set("User-Agent", "google-api-go-client/0.5")
 	res, err := c.s.client.Do(req)
 	if err != nil {
@@ -147,15 +151,19 @@ func (c *CertGetCertsCall) Do() (*CertificatesWithKey, error) {
 	// {
 	//   "httpMethod": "GET",
 	//   "id": "api.cert.getCerts",
+	//   "parameterOrder": [
+	//     "publicKey"
+	//   ],
 	//   "parameters": {
 	//     "publicKey": {
+	//       "default": "",
 	//       "format": "bytes",
 	//       "location": "path",
 	//       "required": "true",
 	//       "type": "string"
 	//     }
 	//   },
-	//   "path": "getcerts",
+	//   "path": "getcerts/{publicKey}",
 	//   "response": {
 	//     "$ref": "CertificatesWithKey"
 	//   }

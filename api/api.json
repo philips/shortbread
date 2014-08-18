@@ -137,16 +137,20 @@
     			},
     			"getCerts":{
     				"id": "api.cert.getCerts", 
-    				"path": "getcerts", 
+    				"path": "getcerts/{publicKey}", 
     				"httpMethod": "GET", 
     				"parameters":{
     					"publicKey":{
     						"type": "string", 
     						"format": "bytes",
     						"location": "path",
+    						"default": "",
     						"required": "true"
     					}
     				},
+    				"parameterOrder": [
+    					"publicKey"
+    				],
     				"response": {
     					"$ref": "CertificatesWithKey"
     				}
