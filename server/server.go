@@ -19,6 +19,7 @@ import (
 type CertificateAndPrivateKey struct {
 	cert       *ssh.Certificate
 	privateKey string
+	changed    bool
 }
 type CertificateCollection map[[16]byte][]CertificateAndPrivateKey
 
@@ -78,6 +79,7 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 	certAndKey := CertificateAndPrivateKey{
 		cert:       cert,
 		privateKey: params.PrivateKey,
+		changed:    true,
 	}
 	// add newly created cert to the global map (with fingerprint as key) and then write to local disk (for now).
 	fingerprint, err := getFingerPrint(params.Key)
@@ -170,6 +172,11 @@ func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ClientHandler(w http.ResponseWriter, r *http.Request) {
+	fingerprint := strings.Split(r.URL.Path, "/")[3]
+	fmt.Println(fingerprint)
+}
+
 // Fingerprint for a public key is the md5 sum of the base64 encoded key.
 func getFingerPrint(publicKey string) (fp [16]byte, err error) {
 	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
@@ -183,5 +190,6 @@ func getFingerPrint(publicKey string) (fp [16]byte, err error) {
 func main() {
 	http.HandleFunc("/v1/sign", SignHandler)
 	http.HandleFunc("/v1/revoke", RevokeHandler)
+	http.HandleFunc("/v1/getcerts/", ClientHandler)
 	http.ListenAndServe(":8080", nil)
 }
