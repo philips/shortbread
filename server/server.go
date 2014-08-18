@@ -12,23 +12,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/coreos/shortbread/client"
+
 	"code.google.com/p/go.crypto/ssh"
 )
 
-type CertificateCollection map[[16]byte][]*ssh.Certificate
-
-type CertificateParameters struct {
-	CertType   string
-	User       string
-	Permission map[string][]string
-	PrivateKey string
-	Key        string //public key (base 64 encoded bytes converted to string)
+type CertificateAndPrivateKey struct {
+	cert       *ssh.Certificate
+	privateKey string
 }
-
-type RevokeInfo struct {
-	User string
-	Key  string
-}
+type CertificateCollection map[[16]byte][]CertificateAndPrivateKey
 
 var Certificates CertificateCollection
 
@@ -36,8 +29,8 @@ func init() {
 	Certificates = make(CertificateCollection)
 }
 
-func (c CertificateCollection) New(params CertificateParameters) error {
-	privateKeyBytes, err := ioutil.ReadFile(params.PrivateKey)
+func (c CertificateCollection) New(params client.CertificateInfo) error {
+	privateKeyBytes, err := ioutil.ReadFile(os.ExpandEnv("$SHORTBREAD_PRVT_KEY") + string(os.PathSeparator) + params.PrivateKey)
 	if err != nil {
 		return err
 	}
@@ -57,14 +50,6 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 		panic("public key is nil")
 	}
 
-	// encoded := strings.Split(params.Key, " ")[1]
-	// data, err := base64.StdEncoding.DecodeString(encoded)
-	// if err != nil {
-	// 	fmt.Println("error:", err)
-	// 	return err
-	// }
-	// fmt.Printf("fingerPrint: % x", md5.Sum(data))
-
 	cert := &ssh.Certificate{
 		Nonce:       []byte{},
 		Key:         keyToSign,
@@ -78,11 +63,11 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 		ValidPrincipals: []string{params.User},
 	}
 
-	for _, perm := range params.Permission["extensions"] {
+	for _, perm := range params.Permission.Extensions {
 		cert.Permissions.Extensions[perm] = ""
 	}
 
-	for _, criticalOpts := range params.Permission["criticalOptions"] {
+	for _, criticalOpts := range params.Permission.CriticalOptions {
 		cert.Permissions.CriticalOptions[criticalOpts] = ""
 	}
 
@@ -91,24 +76,27 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 		return err
 	}
 
+	certAndKey := CertificateAndPrivateKey{
+		cert:       cert,
+		privateKey: params.PrivateKey,
+	}
 	// add newly created cert to the global map (with fingerprint as key) and then write to local disk (for now).
 	fingerprint, err := getFingerPrint(params.Key)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Final check: % x", fingerprint)
 
 	certs, ok := c[fingerprint]
 	if !ok {
-		c[fingerprint] = []*ssh.Certificate{cert}
+		c[fingerprint] = []CertificateAndPrivateKey{certAndKey}
 	} else {
-		c[fingerprint] = append(certs, cert)
+		c[fingerprint] = append(certs, certAndKey)
 	}
 
-	err = ioutil.WriteFile(os.ExpandEnv("$HOME/.ssh/id_rsa-cert.pub"), ssh.MarshalAuthorizedKey(cert), 0600)
-	if err != nil {
-		return err
-	}
+	// err = ioutil.WriteFile(os.ExpandEnv("$HOME/.ssh/id_rsa-cert.pub"), ssh.MarshalAuthorizedKey(cert), 0600)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -116,7 +104,7 @@ func (c CertificateCollection) New(params CertificateParameters) error {
 // Revoke uses the public key provided in the request to delete the corresponding certificate
 // from the map. However, if a username is provided then a certificate is deleted only if the fingerprint is found in the map
 // and the user is listed as a valid principal in the certificate. Reports an error otherwise.
-func (c CertificateCollection) Revoke(revokeInfo RevokeInfo) error {
+func (c CertificateCollection) Revoke(revokeInfo client.RevokeCertificate) error {
 	fingerprint, err := getFingerPrint(revokeInfo.Key)
 	if err != nil {
 		return err
@@ -128,9 +116,9 @@ func (c CertificateCollection) Revoke(revokeInfo RevokeInfo) error {
 	}
 
 	user := revokeInfo.User
-	checkPrincipal := func(certs []*ssh.Certificate, principal string) bool {
-		for _, cert := range certs {
-			if cert.ValidPrincipals[0] == principal {
+	checkPrincipal := func(certs []CertificateAndPrivateKey, principal string) bool {
+		for _, certKey := range certs {
+			if certKey.cert.ValidPrincipals[0] == principal {
 				return true
 			}
 		}
@@ -147,7 +135,7 @@ func (c CertificateCollection) Revoke(revokeInfo RevokeInfo) error {
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var params CertificateParameters
+	var params client.CertificateInfo
 
 	err := decoder.Decode(&params)
 	if err != nil {
@@ -167,7 +155,7 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 // TODO: verify correct http error code being used.
 func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var revokeInfo RevokeInfo
+	var revokeInfo client.RevokeCertificate
 
 	err := decoder.Decode(&revokeInfo)
 	if err != nil {
@@ -183,7 +171,7 @@ func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Fingerprint for a publick key is the md5 sum of the base64 encoded key.
+// Fingerprint for a public key is the md5 sum of the base64 encoded key.
 func getFingerPrint(publicKey string) (fp [16]byte, err error) {
 	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
 	if err != nil {
