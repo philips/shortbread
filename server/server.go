@@ -173,8 +173,8 @@ func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ClientHandler(w http.ResponseWriter, r *http.Request) {
-	fingerprint := strings.Split(r.URL.Path, "/")[3]
-	fmt.Println(fingerprint)
+	fingerprint, _ := getFingerPrint(strings.SplitN(r.URL.Path, "/", 4)[3])
+	fmt.Printf("% x", fingerprint)
 }
 
 // Fingerprint for a public key is the md5 sum of the base64 encoded key.

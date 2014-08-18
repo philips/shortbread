@@ -1,10 +1,13 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/coreos/shortbread/api"
@@ -44,7 +47,8 @@ func main() {
 
 	for {
 		time.Sleep(1000 * time.Millisecond)
-		_, err := crtSvc.GetCerts((loadPublicKey("/Users/shantanu/.ssh/id_rsa.pub"))).Do()
+		pk := loadPublicKey("/Users/shantanu/.ssh/id_rsa.pub")
+		_, err = crtSvc.GetCerts(pk).Do()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err.Error())
 		}
@@ -91,4 +95,14 @@ func setBasePath() string {
 	}
 
 	return "http://localhost:8080/v1/"
+}
+
+// Fingerprint for a public key is the md5 sum of the base64 encoded key.
+func getFingerPrint(publicKey string) (fp [16]byte, err error) {
+	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
+	if err != nil {
+		return fp, err
+	}
+	fp = md5.Sum(data)
+	return fp, nil
 }
