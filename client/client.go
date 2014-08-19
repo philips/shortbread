@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -48,11 +49,25 @@ func main() {
 	for {
 		time.Sleep(1000 * time.Millisecond)
 		pk := loadPublicKey("/Users/shantanu/.ssh/id_rsa.pub")
-		_, err = crtSvc.GetCerts(pk).Do()
+		certsWithKey, err := crtSvc.GetCerts(pk).Do()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err.Error())
 		}
+		// look at the decoded data-structure and write it to disk with name taken from the associated private key
+		// TODO make it path agnostic-> more generalc
+		prvtKey := certsWithKey.List[0].PrivateKey
+		// pKey := strings.SplitN(prvtKey, "/", 5)[4]
+		ioutil.WriteFile("/Users/shantanu/.ssh/users_ca-cert.pub", []byte(certsWithKey.List[0].Cert), 0600)
+		err = exec.Command("cp", "/Users/shantanu/.ssh/id_rsa", prvtKey).Run()
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = exec.Command("ssh-add", prvtKey).Run()
+		if err != nil {
+			fmt.Println(err)
+		}
 
+		break // temp delete this later
 	}
 }
 

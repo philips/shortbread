@@ -16,7 +16,13 @@ import (
 	"github.com/coreos/shortbread/api"
 )
 
-type CertificateCollection map[[16]byte][]*api.CertificateAndPrivateKey
+type CertificatesAndMetaData struct {
+	signedCert   *ssh.Certificate
+	changed      bool
+	transferData *api.CertificateAndPrivateKey
+}
+
+type CertificateCollection map[[16]byte][]*CertificatesAndMetaData
 
 var Certificates CertificateCollection
 
@@ -71,10 +77,13 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 		return err
 	}
 
-	certAndKey := CertificateAndPrivateKey{
-		cert:       cert,
-		privateKey: params.PrivateKey,
+	certAndKey := &CertificatesAndMetaData{
+		signedCert: cert,
 		changed:    true,
+		transferData: &api.CertificateAndPrivateKey{
+			Cert:       string(ssh.MarshalAuthorizedKey(cert)),
+			PrivateKey: params.PrivateKey,
+		},
 	}
 	// add newly created cert to the global map (with fingerprint as key) and then write to local disk (for now).
 	fingerprint, err := getFingerPrint(params.Key)
@@ -84,7 +93,7 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 
 	certs, ok := c[fingerprint]
 	if !ok {
-		c[fingerprint] = []CertificateAndPrivateKey{certAndKey}
+		c[fingerprint] = []*CertificatesAndMetaData{certAndKey}
 	} else {
 		c[fingerprint] = append(certs, certAndKey)
 	}
@@ -112,9 +121,9 @@ func (c CertificateCollection) Revoke(revokeInfo api.RevokeCertificate) error {
 	}
 
 	user := revokeInfo.User
-	checkPrincipal := func(certs []CertificateAndPrivateKey, principal string) bool {
+	checkPrincipal := func(certs []*CertificatesAndMetaData, principal string) bool {
 		for _, certKey := range certs {
-			if certKey.cert.ValidPrincipals[0] == principal {
+			if certKey.signedCert.ValidPrincipals[0] == principal {
 				return true
 			}
 		}
@@ -169,13 +178,22 @@ func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 
 func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	fingerprint, _ := getFingerPrint(strings.SplitN(r.URL.Path, "/", 4)[3])
-	if certs, ok := Certificates[fingerprint]; !ok {
+	certs, ok := Certificates[fingerprint]
+	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", "key does not exist.")
 		return
 	}
 
 	// encode the list here
+	certsWithKey := new(api.CertificatesWithKey)
+	// certsWithKey.List = new([]api.CertificateAndPrivateKey)
+	for _, t := range certs {
+		certsWithKey.List = append(certsWithKey.List, t.transferData)
+	}
+	enc := json.NewEncoder(w)
+	enc.Encode(certsWithKey)
+
 }
 
 // Fingerprint for a public key is the md5 sum of the base64 encoded key.
