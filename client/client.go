@@ -1,123 +1,91 @@
 package main
 
 import (
-	"crypto/md5"
-	"encoding/base64"
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
-	"net/http"
-	"os/exec"
+	"os"
 	"strings"
 	"time"
 
-	"github.com/coreos/shortbread/api"
+	"code.google.com/p/go.crypto/ssh"
+	"code.google.com/p/go.crypto/ssh/agent"
 
-	"os"
+	"github.com/coreos/shortbread/api"
+	"github.com/coreos/shortbread/util"
 )
 
-// read environment var for location of shortbread server
-// read environment variable for lcoation of public key : id_rsa.pub
-// use the api to send a get request to the server.
-// receive cert wrapped with private key info and flag to tell us if we have to delete or add entries from the ssh-agent
-// use private key info to create new copy of id_rsa and write cert
-// execute the ssh-add command from within go using the correct file paths.
-// remove the tmp  files created, data is in the ssh agent now.
-
-// can store identity indefinitely or for a short period and force the client to pull info again and again.
-
-const SHORTBREADCTL_URL = "SHORTBREADCTL_URL"
-const PUBLICKEY_LOCATION = "SHORTBREAD_PUBLIC_KEY"
-
-var serverLocation string
-var publicKeyLocation string
-
-func init() {
-	serverLocation = os.Getenv(SHORTBREADCTL_URL)
-	publicKeyLocation = os.Getenv(PUBLICKEY_LOCATION)
-}
+const (
+	SHORTBREAD_PUBLIC_KEY = "SHORTBREAD_PUBLIC_KEY"
+)
 
 func main() {
-	// var certWithKey *api.CertificatesWithKey
-
-	svc, err := getHTTPClientService() //TODO: modify function to accept a value (user configured base URL)
+	svc, err := util.GetHTTPClientService()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+
 	crtSvc := api.NewCertService(svc)
+	publicKeyPath := util.GetenvWithDefault(SHORTBREAD_PUBLIC_KEY, os.ExpandEnv("$HOME/.ssh/id_rsa.pub"))
+	privateKeyPath := strings.Split(publicKeyPath, ".pub")[0]
+	pk := util.LoadPublicKey(publicKeyPath)
 
 	for {
-		time.Sleep(1000 * time.Millisecond)
-		pk := loadPublicKey("/Users/shantanu/.ssh/id_rsa.pub")
+		time.Sleep(2000 * time.Millisecond)
 		certsWithKey, err := crtSvc.GetCerts(pk).Do()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err.Error())
 		}
-		// look at the decoded data-structure and write it to disk with name taken from the associated private key
-		// TODO make it path agnostic-> more generalc
-		prvtKey := certsWithKey.List[0].PrivateKey
-		// pKey := strings.SplitN(prvtKey, "/", 5)[4]
-		ioutil.WriteFile("/Users/shantanu/.ssh/users_ca-cert.pub", []byte(certsWithKey.List[0].Cert), 0600)
-		err = exec.Command("cp", "/Users/shantanu/.ssh/id_rsa", prvtKey).Run()
+		err = updateSSHAgent(certsWithKey.List, privateKeyPath)
 		if err != nil {
-			fmt.Println(err)
+			log.Fatal(err)
 		}
-		err = exec.Command("ssh-add", prvtKey).Run()
+	}
+}
+
+// updateSSHAgent takes the list of certificates and path to the private key (corresponding to the signed public key). Adds the cert if it's not present in the agent.
+// If the CA has sent an updated cert then it removes the existing one from the agent and adds the upadated certificate.
+func updateSSHAgent(certsWithKeyList []*api.CertificateAndPrivateKey, privateKeyPath string) error {
+	conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	sshAgent := agent.NewClient(conn)
+	certsInSSHAgent, err := sshAgent.List()
+	if err != nil {
+		return err
+	}
+
+	privateKeyBytes, err := ioutil.ReadFile(privateKeyPath)
+	if err != nil {
+		return err
+	}
+
+	privateKeyInterface, err := ssh.ParseRawPrivateKey(privateKeyBytes)
+	if err != nil {
+		return err
+	}
+
+	// TODO optimize this. currently O(N^2)
+	for _, certAndKey := range certsWithKeyList {
+		cert, err := util.ParseSSHCert([]byte(certAndKey.Cert))
+		for _, key := range certsInSSHAgent {
+			certBlob := key.Blob
+			if err != nil {
+				return err
+			}
+			if bytes.Equal(certBlob, cert.Marshal()) {
+				break
+			}
+		}
+		err = sshAgent.Add(privateKeyInterface, cert, "certificated added by shortbread")
 		if err != nil {
-			fmt.Println(err)
+			return err
 		}
-
-		break // temp delete this later
 	}
-}
-
-func getHTTPClientService() (*api.Service, error) {
-	dialFunc := func(string, string) (net.Conn, error) {
-		return net.Dial("tcp", "127.0.0.1:8080")
-	}
-
-	trans := http.Transport{
-		Dial: dialFunc,
-	}
-
-	hc := &http.Client{
-		Transport: &trans,
-	}
-
-	svc, err := api.New(hc)
-	if err != nil {
-		return nil, err
-	}
-
-	(*svc).BasePath = setBasePath()
-	return svc, nil
-}
-
-func loadPublicKey(path string) string {
-	keyToSignBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(keyToSignBytes)
-}
-
-// setBasePath sets the BasePath of the API service to the value specified in the
-// SHORTBREADCTL_URL environment variable. Default value is "http://localhost:8080/v1/"
-func setBasePath() string {
-	if basePath := os.Getenv(SHORTBREADCTL_URL); basePath != "" {
-		return basePath
-	}
-
-	return "http://localhost:8080/v1/"
-}
-
-// Fingerprint for a public key is the md5 sum of the base64 encoded key.
-func getFingerPrint(publicKey string) (fp [16]byte, err error) {
-	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
-	if err != nil {
-		return fp, err
-	}
-	fp = md5.Sum(data)
-	return fp, nil
+	return nil
 }

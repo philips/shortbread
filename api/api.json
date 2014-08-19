@@ -103,6 +103,14 @@
 			"Permission": {
 				"$ref": "Permissions"
 				}, 
+			"ValidBefore": {
+				"type": "string",
+				"format": "uint64"
+			}, 
+			"ValidAfter": {
+				"type": "string",
+				"format": "uint64"
+			},
 			"CertType": {
 				"type": "string", 
 				"description": "only accepts HOST or USER"

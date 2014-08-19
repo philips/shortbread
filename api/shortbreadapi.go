@@ -82,6 +82,10 @@ type CertificateInfo struct {
 	PrivateKey string `json:"PrivateKey,omitempty"`
 
 	User string `json:"User,omitempty"`
+
+	ValidAfter uint64 `json:"ValidAfter,omitempty,string"`
+
+	ValidBefore uint64 `json:"ValidBefore,omitempty,string"`
 }
 
 type CertificatesWithKey struct {
