@@ -3,20 +3,47 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
+	"time"
+
+	"code.google.com/p/go.crypto/ssh"
 
 	"github.com/coreos/cobra"
-	"github.com/coreos/shortbread/client"
+	"github.com/coreos/shortbread/api"
+	"github.com/coreos/shortbread/util"
 )
+
+type permissions []string
 
 var (
 	updateUser      *cobra.Command
 	privateKey      string
-	validBefore     int // in days
-	validAfter      int // in days
+	validBefore     string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
+	validAfter      string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
 	extensions      permissions
 	criticalOptions permissions
 	certType        string
 )
+
+// String is the method to format the flag's value, part of the flag.Value interface.
+// The String method's output will be used in diagnostics.
+func (i *permissions) String() string {
+	return fmt.Sprint(*i)
+}
+
+// Set is the method to set the flag value, part of the flag.Value interface.
+// Set's argument is a string to be parsed to set the flag.
+// It's a comma-separated list, so we split it.
+func (i *permissions) Set(value string) error {
+	for _, addr := range strings.Split(value, ",") {
+		*i = append(*i, addr)
+	}
+	return nil
+}
+
+func (i *permissions) Type() string {
+	return "permissions"
+}
 
 func init() {
 	updateUser = &cobra.Command{
@@ -26,35 +53,68 @@ func init() {
 	}
 
 	updateUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
-	updateUser.Flags().IntVarP(&validBefore, "before", "b", 0, "number of days the certificate is valid")
-	updateUser.Flags().IntVarP(&validAfter, "after", "a", 0, "number of days before the certificate becomes valid")
+	updateUser.Flags().StringVarP(&validBefore, "before", "b", "0", "specify the date(DD-January-YYYY) upto which the certificate is valid. Specify \"INFINITY\" if you want to issue a certificate that never expires")
+	updateUser.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
 	updateUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
 	updateUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
-	updateUser.Flags().StringVarP(&certType, "cert", "c", "", "choose from \"USER\" or \"HOST\"")
-
+	updateUser.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
 }
 
-// issueRequest parses the command line flags and issues a request to the server
+
 func issueRequest(c *cobra.Command, args []string) {
-	svc, err := getHTTPClientService() //TODO: modify function to accept a value (user configured base URL)
+	layout := "2-January-2006"
+	svc, err := util.GetHTTPClientService()
 	if err != nil {
 		panic(err)
 	}
 
-	crtInfo := &client.CertificateInfo{
-		CertType: certType, // TODO: warn user about using default value.
-		Permission: &client.Permissions{
+	var validAfterUnixTime uint64 = 0
+	var validBeforeUnixTime uint64 = 0
+
+	if validBefore == "INFINITY" {
+		validBeforeUnixTime = ssh.CertTimeInfinity
+	} else {
+		validBeforeUnixTime, err = parseDate(layout, validBefore)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s", err.Error())
+		}
+	}
+
+	validAfterUnixTime, err = parseDate(layout, validAfter)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err.Error())
+	}
+
+	crtInfo := &api.CertificateInfo{
+		CertType: certType, 
+		Permission: &api.Permissions{
 			Extensions:      extensions,
 			CriticalOptions: criticalOptions,
 		},
-		User:       user,
-		Key:        loadPublicKey(key),
-		PrivateKey: privateKey,
+		User:        user,
+		Key:         util.LoadPublicKey(key),
+		PrivateKey:  privateKey,
+		ValidAfter:  validAfterUnixTime,
+		ValidBefore: validBeforeUnixTime,
 	}
 
-	crtSvc := client.NewCertService(svc)
+	crtSvc := api.NewCertService(svc)
 	err = crtSvc.Sign(crtInfo).Do()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
+}
+
+// parseDate converts the date into Unix Time (time since 1st Jan 1970 in seconds)
+func parseDate(layout, value string) (uint64, error) {
+	if value == "0" {
+		return 0, nil
+	}
+
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(t.Unix()), nil
 }

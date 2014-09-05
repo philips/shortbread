@@ -1,8 +1,8 @@
 {
     "kind": "discovery#restDescription",
     "discoveryVersion": "v1",
-    "id": "client:v1",
-    "name": "client",
+    "id": "api:v1",
+    "name": "api",
     "version": "v1",
     "auth": {},
     "title": "API to communicate with a centralized CA",
@@ -33,17 +33,30 @@
 		}
 	  },
     "schemas": {
-    "UserList":{
-    	"id": "UserList", 
+    "CertificateAndPrivateKey":{
+    	"id": "CertificateAndPrivateKey",
+    	"type": "object", 
+    	"properties":{
+    		"cert": {
+    			"type": "string", 
+    			"format": "bytes"
+    		},
+    		"privateKey": {
+    			"type": "string"
+    		}
+    	}
+    },
+    "CertificatesWithKey": {
+    	"id": "CertificatesWithKey", 
     	"type": "object",
     	"properties":{
     		"list": {
-    			"type" : "array", 
+    			"type": "array", 
     			"items": {
-    				"type": "string"
+    				"$ref": "CertificateAndPrivateKey"
     			}
     		}
-    	} 
+    	}
     },
 	"Permissions": {	
 		"id": "Permissions", 
@@ -90,6 +103,14 @@
 			"Permission": {
 				"$ref": "Permissions"
 				}, 
+			"ValidBefore": {
+				"type": "string",
+				"format": "uint64"
+			}, 
+			"ValidAfter": {
+				"type": "string",
+				"format": "uint64"
+			},
 			"CertType": {
 				"type": "string", 
 				"description": "only accepts HOST or USER"
@@ -105,29 +126,41 @@
     	"cert": {
     		"methods": {
     			"sign": {
-    				"id": "client.cert.sign", 
+    				"id": "api.cert.sign", 
     				"path": "sign", 
     				"httpMethod": "POST", 
     				"request": {
     					"$ref": "CertificateInfo", 
     					"parameterName": "certParams"
 	    			}
-    			},
-    			"list":{
-    				"id": "client.cert.list", 
-    				"path": "get", 
-    				"httpMethod": "GET", 
-    				"response":{
-    					"$ref": "UserList"
-    				}
-    			},
+    			}, 
     			"revoke":{
-    				"id": "client.cert.revoke", 
+    				"id": "api.cert.revoke", 
     				"path": "revoke", 
     				"httpMethod": "PUT", 
     				"request": {
     					"$ref": "RevokeCertificate", 
     					"parameterName": "revokeCertParams"
+    				}
+    			},
+    			"getCerts":{
+    				"id": "api.cert.getCerts", 
+    				"path": "getcerts/{publicKey}", 
+    				"httpMethod": "GET", 
+    				"parameters":{
+    					"publicKey":{
+    						"type": "string", 
+    						"format": "bytes",
+    						"location": "path",
+    						"default": "",
+    						"required": "true"
+    					}
+    				},
+    				"parameterOrder": [
+    					"publicKey"
+    				],
+    				"response": {
+    					"$ref": "CertificatesWithKey"
     				}
     			}
     		}

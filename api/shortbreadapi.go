@@ -1,13 +1,13 @@
-// Package client provides access to the API to communicate with a centralized CA.
+// Package api provides access to the API to communicate with a centralized CA.
 //
 // See https://github.com/philips/shortbread
 //
 // Usage example:
 //
-//   import "code.google.com/p/google-api-go-client/client/v1"
+//   import "code.google.com/p/google-api-go-client/api/v1"
 //   ...
-//   clientService, err := client.New(oauthHttpClient)
-package client
+//   apiService, err := api.New(oauthHttpClient)
+package api
 
 import (
 	"bytes"
@@ -34,8 +34,8 @@ var _ = googleapi.Version
 var _ = errors.New
 var _ = strings.Replace
 
-const apiId = "client:v1"
-const apiName = "client"
+const apiId = "api:v1"
+const apiName = "api"
 const apiVersion = "v1"
 const basePath = "https://www.example.com/v1/"
 
@@ -64,6 +64,12 @@ type CertService struct {
 	s *Service
 }
 
+type CertificateAndPrivateKey struct {
+	Cert string `json:"cert,omitempty"`
+
+	PrivateKey string `json:"privateKey,omitempty"`
+}
+
 type CertificateInfo struct {
 	// CertType: only accepts HOST or USER
 	CertType string `json:"CertType,omitempty"`
@@ -76,6 +82,14 @@ type CertificateInfo struct {
 	PrivateKey string `json:"PrivateKey,omitempty"`
 
 	User string `json:"User,omitempty"`
+
+	ValidAfter uint64 `json:"ValidAfter,omitempty,string"`
+
+	ValidBefore uint64 `json:"ValidBefore,omitempty,string"`
+}
+
+type CertificatesWithKey struct {
+	List []*CertificateAndPrivateKey `json:"list,omitempty"`
 }
 
 type Permissions struct {
@@ -90,31 +104,40 @@ type RevokeCertificate struct {
 	User string `json:"User,omitempty"`
 }
 
-type UserList struct {
-	List []string `json:"list,omitempty"`
+// method id "api.cert.getCerts":
+
+type CertGetCertsCall struct {
+	s         *Service
+	publicKey string
+	opt_      map[string]interface{}
 }
 
-// method id "client.cert.list":
-
-type CertListCall struct {
-	s    *Service
-	opt_ map[string]interface{}
-}
-
-// List:
-func (r *CertService) List() *CertListCall {
-	c := &CertListCall{s: r.s, opt_: make(map[string]interface{})}
+// GetCerts:
+func (r *CertService) GetCerts(publicKey string) *CertGetCertsCall {
+	c := &CertGetCertsCall{s: r.s, opt_: make(map[string]interface{})}
+	c.publicKey = publicKey
 	return c
 }
 
-func (c *CertListCall) Do() (*UserList, error) {
+// PublicKey sets the optional parameter "publicKey":
+func (c *CertGetCertsCall) PublicKey(publicKey string) *CertGetCertsCall {
+	c.opt_["publicKey"] = publicKey
+	return c
+}
+
+func (c *CertGetCertsCall) Do() (*CertificatesWithKey, error) {
 	var body io.Reader = nil
 	params := make(url.Values)
 	params.Set("alt", "json")
-	urls := googleapi.ResolveRelative(c.s.BasePath, "get")
+	if v, ok := c.opt_["publicKey"]; ok {
+		params.Set("publicKey", fmt.Sprintf("%v", v))
+	}
+	urls := googleapi.ResolveRelative(c.s.BasePath, "getcerts/{publicKey}")
 	urls += "?" + params.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
-	googleapi.SetOpaque(req.URL)
+	googleapi.Expand(req.URL, map[string]string{
+		"publicKey": c.publicKey,
+	})
 	req.Header.Set("User-Agent", "google-api-go-client/0.5")
 	res, err := c.s.client.Do(req)
 	if err != nil {
@@ -124,23 +147,35 @@ func (c *CertListCall) Do() (*UserList, error) {
 	if err := googleapi.CheckResponse(res); err != nil {
 		return nil, err
 	}
-	var ret *UserList
+	var ret *CertificatesWithKey
 	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
 		return nil, err
 	}
 	return ret, nil
 	// {
 	//   "httpMethod": "GET",
-	//   "id": "client.cert.list",
-	//   "path": "get",
+	//   "id": "api.cert.getCerts",
+	//   "parameterOrder": [
+	//     "publicKey"
+	//   ],
+	//   "parameters": {
+	//     "publicKey": {
+	//       "default": "",
+	//       "format": "bytes",
+	//       "location": "path",
+	//       "required": "true",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "getcerts/{publicKey}",
 	//   "response": {
-	//     "$ref": "UserList"
+	//     "$ref": "CertificatesWithKey"
 	//   }
 	// }
 
 }
 
-// method id "client.cert.revoke":
+// method id "api.cert.revoke":
 
 type CertRevokeCall struct {
 	s                 *Service
@@ -181,7 +216,7 @@ func (c *CertRevokeCall) Do() error {
 	return nil
 	// {
 	//   "httpMethod": "PUT",
-	//   "id": "client.cert.revoke",
+	//   "id": "api.cert.revoke",
 	//   "path": "revoke",
 	//   "request": {
 	//     "$ref": "RevokeCertificate",
@@ -191,7 +226,7 @@ func (c *CertRevokeCall) Do() error {
 
 }
 
-// method id "client.cert.sign":
+// method id "api.cert.sign":
 
 type CertSignCall struct {
 	s               *Service
@@ -232,7 +267,7 @@ func (c *CertSignCall) Do() error {
 	return nil
 	// {
 	//   "httpMethod": "POST",
-	//   "id": "client.cert.sign",
+	//   "id": "api.cert.sign",
 	//   "path": "sign",
 	//   "request": {
 	//     "$ref": "CertificateInfo",
