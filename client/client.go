@@ -46,7 +46,6 @@ func main() {
 }
 
 // updateSSHAgent takes the list of certificates and path to the private key (corresponding to the signed public key). Adds the cert if it's not present in the agent.
-// If the CA has sent an updated cert then it removes the existing one from the agent and adds the upadated certificate.
 func updateSSHAgent(certsWithKeyList []*api.CertificateAndPrivateKey, privateKeyPath string) error {
 	conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
 	if err != nil {

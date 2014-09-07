@@ -31,12 +31,12 @@ type CertificatesAndMetaData struct {
 	cert       *ssh.Certificate
 	privateKey string
 }
-
-type CertificateCollection map[[16]byte][]*CertificatesAndMetaData
+type Fingerprint [16]byte 
+type CertificateCollection map[Fingerprint][]*CertificatesAndMetaData
 
 var Certificates CertificateCollection
 var url string = "git@github.com:joshi4/shortbread-test.git"
-var path string = filepath.Join(os.Getenv("HOME"), os.Getenv("GOPATH"),"src/github.com/coreos/shortbread-test/.git")
+var path string = filepath.Join(os.Getenv("HOME"), "shortbread/shortbread-test/git") 
 var mutex = &sync.Mutex{}
 
 func init() {
@@ -71,9 +71,8 @@ func (c CertificateCollection) initialize() {
 		dirName := certPathSlice[0]
 		if strings.HasSuffix(certPath, "-cert.pub") && len(certPathSlice) == 2 && len(dirName) == 32 {
 			certName := certPathSlice[1]
-			var fingerprint [16]byte
+			var fingerprint Fingerprint
 			hexadecimal := fingerprint[:]
-			// the directory name is string of hexadecimal numbers.
 			hexadecimal, err := hex.DecodeString(dirName)
 			if err != nil {
 				continue
@@ -104,8 +103,8 @@ func (c CertificateCollection) initialize() {
 	}
 }
 
-// New method creates a new certificate based on the information supplied by the user and adds it to the global map.
-// the key to the map is the fingerprint of the users public key. The certificate that is generated/modified is written to disk and pushed to a remtoe github repository.
+// New creates a new certificate based on the information supplied by the user and adds it to the global map.
+// Each new entry is logged in a git repo. 
 func (c CertificateCollection) New(params api.CertificateInfo) error {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -170,7 +169,6 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 		privateKey: params.PrivateKey,
 	}
 
-	// add newly created cert to the global map
 	fingerprint, err := getFingerPrint(params.Key)
 	if err != nil {
 		return err
@@ -302,7 +300,7 @@ func ClientHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Fingerprint for a public key is the md5 sum of the base64 encoded key.
-func getFingerPrint(publicKey string) (fp [16]byte, err error) {
+func getFingerPrint(publicKey string) (fp Fingerprint, err error) {
 	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
 	if err != nil {
 		return fp, err
