@@ -202,10 +202,10 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 		return err
 	}
 
-	err = gitutil.Push(repo)
-	if err != nil {
-		return err
-	}
+	// err = gitutil.Push(repo)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
