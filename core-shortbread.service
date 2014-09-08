@@ -1,0 +1,43 @@
+#cloud-config
+coreos:
+  etcd:
+    # generate a new token for each unique cluster from https://discovery.etcd.io/new
+    discovery: https://discovery.etcd.io/d0dd8262b83e7763aaa47e8f894a6689
+    # multi-region and multi-cloud deployments need to use $public_ipv4
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+  units:
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start
+    #mounting extra space for docker containers. 
+    - name: core-shortbread.service
+      command: start
+      content: |
+        [Unit]
+        Description=shortbread CA server 
+        After=etcd.service
+        After=docker.service
+        [Service]
+        TimeoutStartSec=0
+        User=core 
+        ExecStartPre=-/usr/bin/docker kill shortbread_server
+        ExecStartPre=-/usr/bin/docker rm shortbread_server
+        ExecStartPre=/usr/bin/docker pull quay.io/shantanu/shortbread
+        ExecStartPre=/usr/bin/systemctl --user enable core-shortbread.service
+        ExecStart=/usr/bin/docker run -p 8888:8080 -v /home/core/.ssh:/root/.ssh --name shortbread quay.io/shantanu/shortbread
+        ExecStop=/usr/bin/docker stop shortbread_server
+        [Install]
+        WantedBy=multi-user.target 
+write_files:
+  - path: /root/.dockercfg
+    owner: core:core
+    permissions: 0644
+    content: |
+      {
+       "https://quay.io/v1/": {
+        "auth": "JHRva2VuOlJKOFZYWkI3WDJWRU1MUFpRU0U1SEVDOTU5SlhIQVRORUNFNjQzTlJPTVA3VVFVTEg1MU82QTVFQkFCUjBRRTc=",
+        "email": ""
+        }
+      }
