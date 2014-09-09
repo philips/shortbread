@@ -24,7 +24,7 @@ const (
 func main() {
 	svc, err := util.GetHTTPClientService()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	crtSvc := api.NewCertService(svc)
@@ -40,7 +40,7 @@ func main() {
 		}
 		err = updateSSHAgent(certsWithKey.List, privateKeyPath)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 }
