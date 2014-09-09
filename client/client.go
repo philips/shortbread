@@ -32,17 +32,18 @@ func main() {
 	privateKeyPath := strings.Split(publicKeyPath, ".pub")[0]
 	pk := util.LoadPublicKey(publicKeyPath)
 
-	for {
-		time.Sleep(2000 * time.Millisecond)
-		certsWithKey, err := crtSvc.GetCerts(pk).Do()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err.Error())
-		}
-		err = updateSSHAgent(certsWithKey.List, privateKeyPath)
-		if err != nil {
-			log.Println(err)
-		}
+	
+	time.Sleep(2000 * time.Millisecond)
+	certsWithKey, err := crtSvc.GetCerts(pk).Do()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
+	err = updateSSHAgent(certsWithKey.List, privateKeyPath)
+	if err != nil {
+		log.Println(err)
+	}
+	
+	// for {}
 }
 
 // updateSSHAgent takes the list of certificates and path to the private key (corresponding to the signed public key). Adds the cert if it's not present in the agent.
