@@ -20,7 +20,6 @@ import (
 	"github.com/coreos/shortbread/api"
 	"github.com/coreos/shortbread/gitutil"
 	"github.com/coreos/shortbread/util"
-	"github.com/coreos/go-systemd/activation"
 )
 
 const (
@@ -311,17 +310,8 @@ func getFingerPrint(publicKey string) (fp Fingerprint, err error) {
 }
 
 func main() {
-	listeners, err := activation.Listeners(true)
-	if err != nil {
-		panic(err)
-	}
-
-	if len(listeners) != 1 {
-		panic("Unexpected number of socket activation fds")
-	}
-
 	http.HandleFunc("/v1/sign", SignHandler)
 	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.HandleFunc("/v1/getcerts/", ClientHandler)
-	http.Serve(listeners[0], nil)
+	http.ListenAndServe(":8080", nil)
 }

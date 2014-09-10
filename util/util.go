@@ -82,3 +82,17 @@ func GetenvWithDefault(variable, defaultValue string) string {
 	}
 	return defaultValue
 }
+
+// ParseDate converts the date into Unix Time (time since 1st Jan 1970 in seconds)
+func ParseDate(layout, value string) (uint64, error) {
+	if value == "0" {
+		return 0, nil
+	}
+
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(t.Unix()), nil
+}

@@ -12,11 +12,7 @@ CLIENT_PATH="bin/client"
 
 eval $(go env)
 
-#go install github.com/coreos/shortbread
 go install github.com/coreos/shortbread/cmd/shortbreadctl
 
 go build -o ${SERVER_PATH} server/server.go
 go build -o ${CLIENT_PATH} client/client.go
-#go build -o ${CLI_PATH} cmd/shortbreadctl.go
-
-

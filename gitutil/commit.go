@@ -11,7 +11,7 @@ const (
 	MasterRef = "refs/heads/master"
 )
 
-// GitAddAndCommit provides a convenient way of creating commits. Simply provide the (relative)paths of the files you want to stage as well as a commit message.
+// AddAndCommit provides a convenient way of creating commits. Simply provide the (relative)paths of the files you want to stage as well as a commit message.
 // equivalent to executing: git add /path/to/files.go and git commit -m "message"
 func AddAndCommit(repo *git.Repository, paths []string, message string) error {
 	if message == "" {

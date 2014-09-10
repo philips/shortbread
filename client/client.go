@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -24,7 +23,8 @@ const (
 func main() {
 	svc, err := util.GetHTTPClientService()
 	if err != nil {
-		log.Println(err)
+		log.Printf("call to util.GetHTTPClientService failed: %s\n" , err.Error())
+		return 
 	}
 
 	crtSvc := api.NewCertService(svc)
@@ -32,15 +32,16 @@ func main() {
 	privateKeyPath := strings.Split(publicKeyPath, ".pub")[0]
 	pk := util.LoadPublicKey(publicKeyPath)
 
-	
+
 	time.Sleep(2000 * time.Millisecond)
 	certsWithKey, err := crtSvc.GetCerts(pk).Do()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		log.Printf("Get request to API failed: %s\n", err.Error())
+		return 
 	}
 	err = updateSSHAgent(certsWithKey.List, privateKeyPath)
 	if err != nil {
-		log.Println(err)
+		log.Println("Failed to updateSSHAgent: %s\n", err.Error())
 	}
 	
 	// for {}

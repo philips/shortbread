@@ -49,3 +49,18 @@ func gitClone(url string, path string) (*git.Repository, error) {
 	}
 	return repo, nil
 }
+
+func OpenRepositoryNoRemote(url, path string ) (*git.Repository, error ){
+	repo, err := git.OpenRepository(path)
+	if err == nil {
+		return repo, err 
+	}
+	log.Print("No local repo found. creating new local repo")
+	repo, err = git.InitRepository(path, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return repo, nil 
+
+}

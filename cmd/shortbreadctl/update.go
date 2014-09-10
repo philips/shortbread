@@ -74,13 +74,13 @@ func issueRequest(c *cobra.Command, args []string) {
 	if validBefore == "INFINITY" {
 		validBeforeUnixTime = ssh.CertTimeInfinity
 	} else {
-		validBeforeUnixTime, err = parseDate(layout, validBefore)
+		validBeforeUnixTime, err = util.ParseDate(layout, validBefore)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err.Error())
 		}
 	}
 
-	validAfterUnixTime, err = parseDate(layout, validAfter)
+	validAfterUnixTime, err = util.ParseDate(layout, validAfter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
@@ -103,18 +103,4 @@ func issueRequest(c *cobra.Command, args []string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
-}
-
-// parseDate converts the date into Unix Time (time since 1st Jan 1970 in seconds)
-func parseDate(layout, value string) (uint64, error) {
-	if value == "0" {
-		return 0, nil
-	}
-
-	t, err := time.Parse(layout, value)
-	if err != nil {
-		return 0, err
-	}
-
-	return uint64(t.Unix()), nil
 }
