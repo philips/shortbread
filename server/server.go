@@ -105,7 +105,7 @@ func (c CertificateCollection) initialize() {
 
 // New creates a new certificate based on the information supplied by the user and adds it to the global map.
 // Each new entry is logged in a git repo. 
-func (c CertificateCollection) New(params api.CertificateInfo) error {
+func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -197,7 +197,7 @@ func (c CertificateCollection) New(params api.CertificateInfo) error {
 
 	relativeCertPath := filepath.Join(fmt.Sprintf("%x", fingerprint), (params.PrivateKey + "-cert.pub"))
 
-	err = gitutil.AddAndCommit(repo, []string{relativeCertPath}, fmt.Sprintf("added cert for user: %s with private key name: %s", params.User, params.PrivateKey))
+	err = gitutil.AddAndCommit(repo, []string{relativeCertPath}, fmt.Sprintf("added cert for user: %s with private key name: %s", params.User, params.PrivateKey), params.GitSignature.Name, params.GitSignature.Email)
 	if err != nil {
 		return err
 	}
@@ -243,7 +243,7 @@ func (c CertificateCollection) Revoke(revokeInfo api.RevokeCertificate) error {
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var params api.CertificateInfo
+	var params api.CertificateInfoWithGitSignature
 
 	err := decoder.Decode(&params)
 	if err != nil {

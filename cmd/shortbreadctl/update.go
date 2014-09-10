@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"code.google.com/p/go.crypto/ssh"
 
@@ -85,7 +84,7 @@ func issueRequest(c *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())
 	}
 
-	crtInfo := &api.CertificateInfo{
+	crtInfo := &api.CertificateInfoWithGitSignature{
 		CertType: certType, 
 		Permission: &api.Permissions{
 			Extensions:      extensions,
@@ -96,6 +95,8 @@ func issueRequest(c *cobra.Command, args []string) {
 		PrivateKey:  privateKey,
 		ValidAfter:  validAfterUnixTime,
 		ValidBefore: validBeforeUnixTime,
+
+		GitSignature: config, // see shortbreadctl.go 
 	}
 
 	crtSvc := api.NewCertService(svc)

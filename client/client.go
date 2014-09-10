@@ -43,8 +43,6 @@ func main() {
 	if err != nil {
 		log.Println("Failed to updateSSHAgent: %s\n", err.Error())
 	}
-	
-	// for {}
 }
 
 // updateSSHAgent takes the list of certificates and path to the private key (corresponding to the signed public key). Adds the cert if it's not present in the agent.

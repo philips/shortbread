@@ -33,6 +33,18 @@
 		}
 	  },
     "schemas": {
+    "GitSignature":{
+    	"id": "GitSignature", 
+    	"type": "object", 
+    	"properties":{
+    		"name":{
+    			"type": "string"
+    		}, 
+    		"email":{
+    			"type": "string"
+    		}
+    	}
+    },
     "CertificateAndPrivateKey":{
     	"id": "CertificateAndPrivateKey",
     	"type": "object", 
@@ -89,8 +101,8 @@
 			}
 		}
 	},
-	"CertificateInfo": {
-		"id": "CertificateInfo", 
+	"CertificateInfoWithGitSignature": {
+		"id": "CertificateInfoWithGitSignature", 
 		"type": "object", 
 		"properties": {
 			"User": {
@@ -118,8 +130,11 @@
 			"PrivateKey": {
 				"type": "string", 
 				"description": "path of the private key on the CA server"
+				}, 
+			"GitSignature": {
+				"$ref": "GitSignature"
 				}
-			}
+			} 
 		} 
     },
     "resources": {
@@ -130,7 +145,7 @@
     				"path": "sign", 
     				"httpMethod": "POST", 
     				"request": {
-    					"$ref": "CertificateInfo", 
+    					"$ref": "CertificateInfoWithGitSignature", 
     					"parameterName": "certParams"
 	    			}
     			}, 

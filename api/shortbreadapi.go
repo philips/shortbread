@@ -70,9 +70,11 @@ type CertificateAndPrivateKey struct {
 	PrivateKey string `json:"privateKey,omitempty"`
 }
 
-type CertificateInfo struct {
+type CertificateInfoWithGitSignature struct {
 	// CertType: only accepts HOST or USER
 	CertType string `json:"CertType,omitempty"`
+
+	GitSignature *GitSignature `json:"GitSignature,omitempty"`
 
 	Key string `json:"Key,omitempty"`
 
@@ -90,6 +92,12 @@ type CertificateInfo struct {
 
 type CertificatesWithKey struct {
 	List []*CertificateAndPrivateKey `json:"list,omitempty"`
+}
+
+type GitSignature struct {
+	Email string `json:"email,omitempty"`
+
+	Name string `json:"name,omitempty"`
 }
 
 type Permissions struct {
@@ -229,21 +237,21 @@ func (c *CertRevokeCall) Do() error {
 // method id "api.cert.sign":
 
 type CertSignCall struct {
-	s               *Service
-	certificateinfo *CertificateInfo
-	opt_            map[string]interface{}
+	s                               *Service
+	certificateinfowithgitsignature *CertificateInfoWithGitSignature
+	opt_                            map[string]interface{}
 }
 
 // Sign:
-func (r *CertService) Sign(certificateinfo *CertificateInfo) *CertSignCall {
+func (r *CertService) Sign(certificateinfowithgitsignature *CertificateInfoWithGitSignature) *CertSignCall {
 	c := &CertSignCall{s: r.s, opt_: make(map[string]interface{})}
-	c.certificateinfo = certificateinfo
+	c.certificateinfowithgitsignature = certificateinfowithgitsignature
 	return c
 }
 
 func (c *CertSignCall) Do() error {
 	var body io.Reader = nil
-	body, err := googleapi.WithoutDataWrapper.JSONReader(c.certificateinfo)
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.certificateinfowithgitsignature)
 	if err != nil {
 		return err
 	}
@@ -270,7 +278,7 @@ func (c *CertSignCall) Do() error {
 	//   "id": "api.cert.sign",
 	//   "path": "sign",
 	//   "request": {
-	//     "$ref": "CertificateInfo",
+	//     "$ref": "CertificateInfoWithGitSignature",
 	//     "parameterName": "certParams"
 	//   }
 	// }
