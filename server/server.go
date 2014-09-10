@@ -36,7 +36,7 @@ type CertificateCollection map[Fingerprint][]*CertificatesAndMetaData
 
 var Certificates CertificateCollection
 var url string = "git@github.com:joshi4/shortbread-test.git"
-var path string = filepath.Join(os.Getenv("HOME"), ".ssh","shortbread/shortbread-test/git") 
+var path string = filepath.Join(os.Getenv("HOME"), "ssh","shortbread/certs/.git") 
 var mutex = &sync.Mutex{}
 
 func init() {
@@ -116,7 +116,7 @@ func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) e
 	}
 	defer repo.Free()
 
-	privateKeyBytes, err := ioutil.ReadFile(filepath.Join(util.GetenvWithDefault(SHORTBREAD_PRVT_KEY, os.ExpandEnv("$HOME/.ssh")), params.PrivateKey))
+	privateKeyBytes, err := ioutil.ReadFile(filepath.Join(util.GetenvWithDefault(SHORTBREAD_PRVT_KEY, os.ExpandEnv("$HOME/ssh")), params.PrivateKey))
 	if err != nil {
 		return err
 	}
