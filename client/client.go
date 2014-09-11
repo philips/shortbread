@@ -7,8 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
-	"time"
-
+	
 	"code.google.com/p/go.crypto/ssh"
 	"code.google.com/p/go.crypto/ssh/agent"
 
