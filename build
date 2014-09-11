@@ -4,7 +4,6 @@ set -e
 
 . ./build-api
 
-#export GOPATH=${PWD}
 export GOBIN=${PWD}/bin
 
 SERVER_PATH="bin/server"
@@ -13,6 +12,5 @@ CLIENT_PATH="bin/client"
 eval $(go env)
 
 go install github.com/coreos/shortbread/cmd/shortbreadctl
-
 go build -o ${SERVER_PATH} server/server.go
 go build -o ${CLIENT_PATH} client/client.go
