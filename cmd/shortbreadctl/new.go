@@ -46,8 +46,8 @@ func (i *permissions) Type() string {
 
 func init() {
 	updateUser = &cobra.Command{
-		Use:   "update",
-		Short: "generate a certificate for a new user or modify an existing one",
+		Use:   "new",
+		Short: "generate a new certificate",
 		Run:   issueRequest,
 	}
 
@@ -58,7 +58,6 @@ func init() {
 	updateUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
 	updateUser.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
 }
-
 
 func issueRequest(c *cobra.Command, args []string) {
 	layout := "2-January-2006"
@@ -85,7 +84,7 @@ func issueRequest(c *cobra.Command, args []string) {
 	}
 
 	crtInfo := &api.CertificateInfoWithGitSignature{
-		CertType: certType, 
+		CertType: certType,
 		Permission: &api.Permissions{
 			Extensions:      extensions,
 			CriticalOptions: criticalOptions,
@@ -96,7 +95,7 @@ func issueRequest(c *cobra.Command, args []string) {
 		ValidAfter:  validAfterUnixTime,
 		ValidBefore: validBeforeUnixTime,
 
-		GitSignature: config, // see shortbreadctl.go 
+		GitSignature: config, // see shortbreadctl.go
 	}
 
 	crtSvc := api.NewCertService(svc)
