@@ -22,31 +22,31 @@ import (
 	"github.com/coreos/shortbread/util"
 )
 
-const (
-	SHORTBREAD_PRVT_KEY = "SHORTBREAD_PRVT_KEY"
-	FingerprintLength   = 16
-)
-
 type CertificatesAndMetaData struct {
 	cert       *ssh.Certificate
 	privateKey string
 }
-type Fingerprint [16]byte 
+type Fingerprint [16]byte
 type CertificateCollection map[Fingerprint][]*CertificatesAndMetaData
 
 var Certificates CertificateCollection
-var url string = "git@github.com:joshi4/shortbread-test.git"
-var path string = filepath.Join(os.Getenv("HOME"), "ssh","shortbread/certs/.git") 
+var remoteRepoUrl string
+var path string = filepath.Join(os.Getenv("HOME"), "ssh", "shortbread/certs/.git")
 var mutex = &sync.Mutex{}
 
 func init() {
 	Certificates = make(CertificateCollection)
+	if len(os.Args) >= 2 {
+		remoteRepoUrl = os.Args[1]
+		log.Printf("remote repo specified to be: %s\n", remoteRepoUrl)
+	}
+
 	Certificates.initialize()
 }
 
 // Initalize the map based on existing contents of the local git repo, if one exists.
 func (c CertificateCollection) initialize() {
-	repo, err := gitutil.OpenRepository(url, path)
+	repo, err := gitutil.OpenRepository(remoteRepoUrl, path)
 	if err != nil {
 		return
 	}
@@ -104,24 +104,23 @@ func (c CertificateCollection) initialize() {
 }
 
 // New creates a new certificate based on the information supplied by the user and adds it to the global map.
-// Each new entry is logged in a git repo. 
+// Each new entry is logged in a git repo.
 func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	repo, err := gitutil.OpenRepository(url, path)
+	repo, err := gitutil.OpenRepository(remoteRepoUrl, path)
 	if err != nil {
 		log.Print(err)
 		return err
 	}
 	defer repo.Free()
 
-	privateKeyBytes, err := ioutil.ReadFile(filepath.Join(util.GetenvWithDefault(SHORTBREAD_PRVT_KEY, os.ExpandEnv("$HOME/ssh")), params.PrivateKey))
+	privateKeyBytes, err := ioutil.ReadFile(filepath.Join(os.ExpandEnv("$HOME/ssh"), params.PrivateKey))
 	if err != nil {
 		return err
 	}
 
-	//the private key used to sign the certificate.
 	authority, err := ssh.ParsePrivateKey(privateKeyBytes)
 	if err != nil {
 		return err
@@ -202,10 +201,13 @@ func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) e
 		return err
 	}
 
-	// err = gitutil.Push(repo)
-	// if err != nil {
-	// 	return err
-	// }
+	if remoteRepoUrl != "" {
+		err = gitutil.Push(repo)
+		if err != nil {
+			log.Printf("Push to remote repo failed: %s\n", err.Error())
+		}
+		log.Printf("Pushed to %s\n", remoteRepoUrl)
+	}
 
 	return nil
 }
