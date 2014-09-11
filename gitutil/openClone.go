@@ -11,13 +11,13 @@ import (
 func OpenRepository(url string, path string) (*git.Repository, error) {
 	repo, err := git.OpenRepository(path)
 	if err == nil {
-		return repo, err 
+		return repo, err
 	}
 
 	log.Print("repo does not exist: cloning from remote")
 	repo, err = gitClone(url, strings.Split(path, "/.git")[0])
 	if err == nil {
-		return repo, err 
+		return repo, err
 	}
 
 	log.Print("No remote repo found. creating new local repo")
@@ -26,7 +26,7 @@ func OpenRepository(url string, path string) (*git.Repository, error) {
 		return nil, err
 	}
 
-	return repo, nil 
+	return repo, nil
 }
 
 func gitClone(url string, path string) (*git.Repository, error) {
@@ -42,7 +42,6 @@ func gitClone(url string, path string) (*git.Repository, error) {
 			Strategy: git.CheckoutSafeCreate,
 		},
 	}
-	log.Printf("%s\n%s", url, path)
 	repo, err := git.Clone(url, path, options)
 	if err != nil {
 		return nil, err
@@ -50,17 +49,17 @@ func gitClone(url string, path string) (*git.Repository, error) {
 	return repo, nil
 }
 
-func OpenRepositoryNoRemote(url, path string ) (*git.Repository, error ){
+func OpenRepositoryNoRemote(path string) (*git.Repository, error) {
 	repo, err := git.OpenRepository(path)
 	if err == nil {
-		return repo, err 
+		return repo, err
 	}
+
 	log.Print("No local repo found. creating new local repo")
 	repo, err = git.InitRepository(path, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return repo, nil 
-
+	return repo, nil
 }

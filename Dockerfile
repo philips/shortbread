@@ -1,12 +1,10 @@
 FROM ubuntu
-MAINTAINER Shantanu Joshi <shantanu.joshi@coreos.com>
 ENV DEBIAN_FRONTEND noninteractive
 ENV HOME /root
 RUN mkdir -p /root/Golang/bin
-# for the repo that will be cloned.
-RUN mkdir -p /root/.ssh
+RUN mkdir -p /root/ssh
 WORKDIR /root
-#Using the reserve HTTP port.
+# libssh2 dependency
 RUN apt-get update
 RUN apt-get install -y libssh2-1-dev
 RUN apt-get install -y libssh2-1
