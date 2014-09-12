@@ -14,12 +14,14 @@ import (
 )
 
 const (
-	SHORTBREADCTL_URL = "SHORTBREADCTL_URL"
-	defaultURL        = "http://localhost:8889/v1/"
+	defaultURL = "http://localhost:8889/v1/"
 )
 
-func GetHTTPClientService() (*api.Service, error) {
-	return getHTTPClientService(GetenvWithDefault(SHORTBREADCTL_URL, defaultURL))
+func GetHTTPClientService(serverURL string) (*api.Service, error) {
+	if serverURL == "" {
+		serverURL = defaultURL
+	}
+	return getHTTPClientService(serverURL)
 }
 
 func getHTTPClientService(basePath string) (*api.Service, error) {

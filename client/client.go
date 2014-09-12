@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
-	
+
 	"code.google.com/p/go.crypto/ssh"
 	"code.google.com/p/go.crypto/ssh/agent"
 
@@ -15,19 +15,22 @@ import (
 	"github.com/coreos/shortbread/util"
 )
 
-const (
-	SHORTBREAD_PUBLIC_KEY = "SHORTBREAD_PUBLIC_KEY"
-)
-
 func main() {
-	svc, err := util.GetHTTPClientService()
+	if len(os.Args) < 2 {
+		log.Println("Usage: client http://server:port/v1/")
+		os.Exit(2)
+	}
+	serverURL := os.Args[1]
+
+	svc, err := util.GetHTTPClientService(serverURL)
 	if err != nil {
 		log.Printf("call to util.GetHTTPClientService failed: %s\n", err.Error())
 		return
 	}
 
 	crtSvc := api.NewCertService(svc)
-	publicKeyPath := util.GetenvWithDefault(SHORTBREAD_PUBLIC_KEY, os.ExpandEnv("$HOME/.ssh/id_rsa.pub"))
+	// TODO allow user to specify multiple keys instead of enforcing id_rsa.pub
+	publicKeyPath := os.ExpandEnv("$HOME/.ssh/id_rsa.pub")
 	privateKeyPath := strings.Split(publicKeyPath, ".pub")[0]
 	pk := util.LoadPublicKey(publicKeyPath)
 
