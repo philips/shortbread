@@ -11,7 +11,6 @@ coreos:
       command: start
     - name: fleet.service
       command: start
-    #mounting extra space for docker containers. 
     - name: core-shortbread.service
       enable: true 
       command: start
@@ -22,6 +21,7 @@ coreos:
         After=docker.service
         [Service]
         TimeoutStartSec=0
+        Restart=on-failure
         Environment="HOME=/root"
         ExecStartPre=-/usr/bin/docker kill shortbread_server
         ExecStartPre=-/usr/bin/docker rm shortbread_server
