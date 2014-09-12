@@ -23,7 +23,7 @@ Use "shortbreadctl help [command]" for more information about that command.
 To add a new user certificate
 
 ```
-shortbreadctl update -k $HOME/.ssh/id_rsa.pub -p users_ca -u shantanu -e permit-pty -c USER -b 31-December-2014
+shortbreadctl new -k $HOME/.ssh/id_rsa.pub -p users_ca -u shantanu -e permit-pty -c USER -b 31-December-2014
 ```
 
 To revoke a certificate
