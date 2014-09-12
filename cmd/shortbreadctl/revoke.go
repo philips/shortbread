@@ -24,7 +24,7 @@ func init() {
 }
 
 func issueRevoke(c *cobra.Command, args []string) {
-	svc, err := util.GetHTTPClientService()
+	svc, err := util.GetHTTPClientService(serverURL)
 	if err != nil {
 		panic(err)
 	}
