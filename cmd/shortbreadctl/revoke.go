@@ -10,13 +10,13 @@ import (
 )
 
 var (
-	revokeUser       *cobra.Command
+	revokeCert       *cobra.Command
 	userToRevoke     string
 	revokedPublicKey string
 )
 
 func init() {
-	revokeUser = &cobra.Command{
+	revokeCert = &cobra.Command{
 		Use:   "revoke",
 		Short: "revoke the certificate issued to a particular user",
 		Run:   issueRevoke,

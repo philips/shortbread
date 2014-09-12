@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"strings"
 
 	"code.google.com/p/go.crypto/ssh"
@@ -15,7 +15,7 @@ import (
 type permissions []string
 
 var (
-	updateUser      *cobra.Command
+	newCert         *cobra.Command
 	privateKey      string
 	validBefore     string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
 	validAfter      string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
@@ -45,25 +45,25 @@ func (i *permissions) Type() string {
 }
 
 func init() {
-	updateUser = &cobra.Command{
+	newCert = &cobra.Command{
 		Use:   "new",
 		Short: "generate a new certificate",
 		Run:   issueRequest,
 	}
 
-	updateUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
-	updateUser.Flags().StringVarP(&validBefore, "before", "b", "0", "specify the date(DD-January-YYYY) upto which the certificate is valid. Specify \"INFINITY\" if you want to issue a certificate that never expires")
-	updateUser.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
-	updateUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
-	updateUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
-	updateUser.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
+	newCert.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
+	newCert.Flags().StringVarP(&validBefore, "before", "b", "0", "specify the date(DD-January-YYYY) upto which the certificate is valid. Specify \"INFINITY\" if you want to issue a certificate that never expires")
+	newCert.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
+	newCert.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
+	newCert.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
+	newCert.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
 }
 
 func issueRequest(c *cobra.Command, args []string) {
 	layout := "2-January-2006"
-	svc, err := util.GetHTTPClientService()
+	svc, err := util.GetHTTPClientService(serverURL)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	var validAfterUnixTime uint64 = 0
@@ -74,13 +74,13 @@ func issueRequest(c *cobra.Command, args []string) {
 	} else {
 		validBeforeUnixTime, err = util.ParseDate(layout, validBefore)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err.Error())
+			log.Println(err)
 		}
 	}
 
 	validAfterUnixTime, err = util.ParseDate(layout, validAfter)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		log.Println(err)
 	}
 
 	crtInfo := &api.CertificateInfoWithGitSignature{
@@ -101,6 +101,6 @@ func issueRequest(c *cobra.Command, args []string) {
 	crtSvc := api.NewCertService(svc)
 	err = crtSvc.Sign(crtInfo).Do()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		log.Println(err)
 	}
 }
