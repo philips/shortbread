@@ -6,7 +6,8 @@
 	<string>com.test</string>
 <key>ProgramArguments</key>
 <array>
-	<string>/Users/shantanu/Golang/src/github.com/coreos/shortbread/client/client</string>
+	<string>/Users/shantanu/Golang/src/github.com/coreos/shortbread/bin/client</string>
+	<string>http://ec2-54-211-180-127.compute-1.amazonaws.com:8889/v1/</string>
 </array>
 <key>RunAtLoad</key>
 	<true/>
