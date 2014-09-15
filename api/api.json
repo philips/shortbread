@@ -45,6 +45,22 @@
     		}
     	}
     },
+    "DirectoryPair":{
+        "id": "Directory", 
+        "type": "object", 
+        "properties":{
+            "key":{
+                "type": "string"
+            }, 
+            "value":{
+                "type": "string", 
+                "format": "bytes"
+            }, 
+            "GitSignature":{
+                "$ref": "GitSignature"
+            }
+        }
+    },
     "CertificateAndPrivateKey":{
     	"id": "CertificateAndPrivateKey",
     	"type": "object", 
@@ -179,7 +195,29 @@
     				}
     			}
     		}
-    	}
+    	}, 
+        "directory":{
+            "methods":{
+                "updateServerDirectory":{
+                    "id": "api.directory.updateDirectory", 
+                    "path": "updateServerDirectory", 
+                    "httpMethod": "POST", 
+                    "request":{
+                        "$ref": "DirectoryPair", 
+                        "parameterName": "serverNameAndURL"
+                    }
+                }, 
+                "updateUserDirectory":{
+                    "id": "api.directory.updateUserDirectory", 
+                    "path": "updateUserDirectory", 
+                    "httpMethod": "POST", 
+                    "request":{
+                        "$ref": "DirectoryPair", 
+                        "parameterName": "userAndPublicKey"
+                    }
+                }
+            }
+        }
 	}
 }
     
