@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/coreos/cobra"
+	"github.com/coreos/shortbread/api"
 	"github.com/coreos/shortbread/util"
 )
 
@@ -40,50 +38,12 @@ func addServerToDirectory(c *cobra.Command, args []string) {
 	}
 
 	directoryPair := &api.DirectoryPair{
-		Key:   key,
-		Value: address,
+		Key:          key,
+		Value:        address,
 		GitSignature: gitSignature,
 	}
 	err = svc.Directory.UpdateUserDirectory(directoryPair).Do()
 	if err != nil {
 		log.Println(err)
-	}
-}
-
-// initMap parses the encoded content in filePath and uses it to initialize the serverDirectory.
-// If the file does not exist, then it returns an empty map.
-func (directory *directory) initDirectory(filePath) {
-	encodedMap, err := ioutil.ReadFile(filePath)
-
-	_, ok := err.(*os.PathError)
-	if err != nil && ok {
-		log.Println(err.Error())
-		return
-	}
-
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	encdedMapReader = bytes.NewReader(encodedMap)
-	dec := gob.NewDecoder(encodedMapReader)
-	err = dec.Decode(directory)
-	if err != nil {
-		log.Fatal("decode error: ", err)
-	}
-}
-
-// writeDirectoryToDisk encodes the contents of the directory map and writes to the file specified by filePath.
-func (directory *directory) writeDirectoryToDisk(filePath) {
-	var buffer bytes.Buffer
-	enc := gob.NewEncoder(&buffer)
-	err := enc.Encode(directory)
-	if err != nil {
-		log.Fatal("failed to encode map: ", err)
-	}
-
-	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
-	if err != nil {
-		log.Fatal("failed to write encoded map to disk: ", err)
 	}
 }

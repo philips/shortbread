@@ -79,7 +79,7 @@ func (c CertificateCollection) initialize() {
 		//add to the map only if path ends with `.pub` and after splitting on pathSeparator, length is 2.
 		certPath := indexEntry.Path
 		if certPath == serverDirectoryFile {
-			err := readServerDirectory(&serverDirectory, workingDir)
+			err := readServerDirectory(&serverDirectory, gitWorkingDir)
 			if err != nil {
 				log.Println("Server directory is empty ! Could not load directory from disk: ", err)
 			}
@@ -87,7 +87,7 @@ func (c CertificateCollection) initialize() {
 		}
 
 		if certPath == userDirectoryFile {
-			err := readUserDirectory(&userDirectory, workingDir)
+			err := readUserDirectory(&userDirectory, gitWorkingDir)
 			if err != nil {
 				log.Println("User directory is empty ! Could not load directory from disk: ", err)
 			}
@@ -320,8 +320,8 @@ func ServerDirectoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	authorName := dirPair.GitSignature.Name
 	authorEmail := dirPair.GitSignature.Email
-	err = addAndCommitDirectory(serverDirectoryFile, authorName, authorEmail)
-	if err != ninl {
+	err = addAndCommitDirectory(serverDirectoryFile, authorName, authorEmail, fmt.Sprintf("%s = %s ", key, address))
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Could not commit directory into git: %s", err.Error())
 		return
@@ -372,6 +372,6 @@ func main() {
 	http.HandleFunc("/v1/sign", SignHandler)
 	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.HandleFunc("/v1/getcerts/", ClientHandler)
-	htttp.HandleFunc("/v1/updateServerDirectory", ServerDirectoryHandler)
+	http.HandleFunc("/v1/updateServerDirectory", ServerDirectoryHandler)
 	http.ListenAndServe(":8080", nil)
 }

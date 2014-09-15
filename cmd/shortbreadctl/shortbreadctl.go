@@ -14,7 +14,7 @@ var (
 	user          string
 	key           string
 	serverURL     string
-	config        *api.GitSignature
+	gitSignature  *api.GitSignature
 )
 
 const (
@@ -30,11 +30,11 @@ func init() {
 	shortbreadCtl.PersistentFlags().StringVarP(&key, "key", "k", "", "bears the path to the public key that will be signed by the CA's private key")
 	gitconfig, err := git.NewConfig()
 	if err != nil {
-		log.Fatalf("unable to create git config object: %s", err.Error())
+		log.Fatalf("unable to create git gitSignature object: %s", err.Error())
 	}
 
 	gitconfig.AddFile(os.ExpandEnv("$HOME/.gitconfig"), git.ConfigLevelGlobal, false)
-	config = gitSignatureFromConfig(gitconfig)
+	gitSignature = gitSignatureFromConfig(gitconfig)
 
 	serverURL = os.Getenv(shortbreadctlURL)
 }
@@ -42,6 +42,7 @@ func init() {
 func main() {
 	shortbreadCtl.AddCommand(newCert)
 	shortbreadCtl.AddCommand(revokeCert)
+	shortbreadCtl.AddCommand(serverAdd)
 	shortbreadCtl.Execute()
 }
 

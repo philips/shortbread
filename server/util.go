@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/gob"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -34,7 +33,7 @@ func (directory *Directory) writeDirectory(file string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
+	err = ioutil.WriteFile(file, buffer.Bytes(), 0644)
 	if err != nil {
 		log.Println("failed to write encoded map to disk")
 		return err
@@ -58,7 +57,7 @@ func (directory *Directory) readDirectory(file string) error {
 		return err
 	}
 
-	encdedMapReader = bytes.NewReader(encodedMap)
+	encodedMapReader := bytes.NewReader(encodedMap)
 	dec := gob.NewDecoder(encodedMapReader)
 	err = dec.Decode(directory)
 
@@ -73,12 +72,12 @@ func readUserDirectory(directory *Directory, workingDir string) error {
 	return directory.readDirectory(filepath.Join(workingDir, userDirectoryFile))
 }
 
-func addAndCommitDirectory(fileName, authorName, authorEmail string) error {
-	repo, err = gitutil.OpenRepository(remoteRepoUrl, path)
+func addAndCommitDirectory(fileName, authorName, authorEmail, msg string) error {
+	repo, err := gitutil.OpenRepository(remoteRepoUrl, path)
 	if err != nil {
 		return err
 	}
 
-	err = gitutil.AddAndCommit(repo, fileName, fmt.Sprintf("%s = %s ", key, address), authorName, authorEmail)
+	err = gitutil.AddAndCommit(repo, []string{fileName}, msg, authorName, authorEmail)
 	return err
 }

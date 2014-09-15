@@ -95,7 +95,7 @@ func issueRequest(c *cobra.Command, args []string) {
 		ValidAfter:  validAfterUnixTime,
 		ValidBefore: validBeforeUnixTime,
 
-		GitSignature: config, // see shortbreadctl.go
+		GitSignature: gitSignature, // see shortbreadctl.go
 	}
 
 	crtSvc := api.NewCertService(svc)
