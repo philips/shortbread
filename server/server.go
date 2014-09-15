@@ -151,7 +151,12 @@ func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) e
 		return err
 	}
 
-	keyToSignBytes := []byte(params.Key)
+	publicKeyString, ok := userDirectory[params.User]
+	if !ok {
+		return errors.New("can't create certificate. user not present in the user directory.")
+	}
+
+	keyToSignBytes := []byte(publicKeyString)
 	keyToSign, _, _, _, err := ssh.ParseAuthorizedKey(keyToSignBytes)
 	if err != nil {
 		return err
@@ -193,7 +198,7 @@ func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) e
 		privateKey: params.PrivateKey,
 	}
 
-	fingerprint, err := getFingerPrint(params.Key)
+	fingerprint, err := getFingerPrint(publicKeyString)
 	if err != nil {
 		return err
 	}
@@ -328,6 +333,48 @@ func ServerDirectoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func UserDirectoryHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var dirPair api.DirectoryPair
+
+	err := decoder.Decode(&dirPair)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "%s", err.Error())
+		return
+	}
+
+	user := dirPair.Key
+	publicKeyString := dirPair.Value
+	authorName := dirPair.GitSignature.Name
+	authorEmail := dirPair.GitSignature.Email
+
+	if _, ok := userDirectory[user]; ok {
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprintf(w, "public key already bound to user name: %s", user)
+		return
+	}
+
+	userDirectory[user] = publicKeyString
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	err = writeUserDirectory(&userDirectory, gitWorkingDir)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Could not write directory to disk: %s", err.Error())
+		return
+	}
+
+	err = addAndCommitDirectory(userDirectoryFile, authorName, authorEmail, fmt.Sprintf("Added new user %s to user directory", user))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Could not commit directory into git: %s", err.Error())
+		return
+	}
+}
+
 func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var revokeInfo api.RevokeCertificate
@@ -373,5 +420,6 @@ func main() {
 	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.HandleFunc("/v1/getcerts/", ClientHandler)
 	http.HandleFunc("/v1/updateServerDirectory", ServerDirectoryHandler)
+	http.HandleFunc("/v1/updateUserDirectory", UserDirectoryHandler)
 	http.ListenAndServe(":8080", nil)
 }
