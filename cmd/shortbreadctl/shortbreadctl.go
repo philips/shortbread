@@ -43,6 +43,7 @@ func main() {
 	shortbreadCtl.AddCommand(newCert)
 	shortbreadCtl.AddCommand(revokeCert)
 	shortbreadCtl.AddCommand(serverAdd)
+	shortbreadCtl.AddCommand(userAdd)
 	shortbreadCtl.Execute()
 }
 

@@ -23,7 +23,7 @@ func init() {
 	}
 }
 
-// addServerToMap takes in the key value pair provided by the user and adds it to the server directory on the Certifying authority server.
+// addServerToDirectory takes in the key value pair provided by the user and adds it to the server directory on the Certifying authority server.
 func addServerToDirectory(c *cobra.Command, args []string) {
 	if len(args) != 2 {
 		fmt.Fprintf(os.Stderr, "command must have two arguments: The server name and the server url.\nType shortbreadctl help server-add for more information")
