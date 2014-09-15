@@ -88,8 +88,6 @@ type CertificateInfoWithGitSignature struct {
 
 	GitSignature *GitSignature `json:"GitSignature,omitempty"`
 
-	Key string `json:"Key,omitempty"`
-
 	Permission *Permissions `json:"Permission,omitempty"`
 
 	// PrivateKey: path of the private key on the CA server

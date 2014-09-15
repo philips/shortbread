@@ -11,8 +11,6 @@ import (
 
 var (
 	shortbreadCtl *cobra.Command
-	user          string
-	key           string
 	serverURL     string
 	gitSignature  *api.GitSignature
 )
@@ -26,8 +24,6 @@ func init() {
 		Use:   "shortbreadctl",
 		Short: "A command line tool to interact with the CA server and issue/revoke/modify user and host certificates",
 	}
-	shortbreadCtl.PersistentFlags().StringVarP(&user, "username", "u", "", "username of the entity to whom the certificate is issued")
-	shortbreadCtl.PersistentFlags().StringVarP(&key, "key", "k", "", "bears the path to the public key that will be signed by the CA's private key")
 	gitconfig, err := git.NewConfig()
 	if err != nil {
 		log.Fatalf("unable to create git gitSignature object: %s", err.Error())

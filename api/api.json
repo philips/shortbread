@@ -124,10 +124,6 @@
 			"User": {
 				"type": "string"
 				}, 
-			"Key": {
-				"type": "string", 
-				"format": "byte"
-				}, 
 			"Permission": {
 				"$ref": "Permissions"
 				}, 

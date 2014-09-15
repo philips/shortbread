@@ -22,6 +22,7 @@ var (
 	extensions      permissions
 	criticalOptions permissions
 	certType        string
+	user            string
 )
 
 // String is the method to format the flag's value, part of the flag.Value interface.
@@ -52,11 +53,13 @@ func init() {
 	}
 
 	newCert.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
-	newCert.Flags().StringVarP(&validBefore, "before", "b", "0", "specify the date(DD-January-YYYY) upto which the certificate is valid. Specify \"INFINITY\" if you want to issue a certificate that never expires")
+	newCert.Flags().StringVarP(&validBefore, "before", "b", "INFINITY", "specify the date(DD-January-YYYY) upto which the certificate is valid. Default value is  \"INFINITY\" .")
 	newCert.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
 	newCert.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
 	newCert.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
 	newCert.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
+	newCert.Flags().StringVarP(&user, "username", "u", "", "username of the entity to whom the certificate is issued. Must be a valid username stored in the user directory")
+
 }
 
 func issueRequest(c *cobra.Command, args []string) {
@@ -90,7 +93,6 @@ func issueRequest(c *cobra.Command, args []string) {
 			CriticalOptions: criticalOptions,
 		},
 		User:        user,
-		Key:         util.LoadPublicKey(key),
 		PrivateKey:  privateKey,
 		ValidAfter:  validAfterUnixTime,
 		ValidBefore: validBeforeUnixTime,
