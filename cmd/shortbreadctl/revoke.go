@@ -1,12 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/coreos/cobra"
-	"github.com/coreos/shortbread/api"
-	"github.com/coreos/shortbread/util"
 )
 
 var (
@@ -24,19 +21,5 @@ func init() {
 }
 
 func issueRevoke(c *cobra.Command, args []string) {
-	svc, err := util.GetHTTPClientService(serverURL)
-	if err != nil {
-		panic(err)
-	}
-
-	revokeCrt := &api.RevokeCertificate{
-		User: user,
-		Key:  util.LoadPublicKey(key),
-	}
-
-	crtSvc := api.NewCertService(svc)
-	err = crtSvc.Revoke(revokeCrt).Do()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
-	}
+	log.Println("not implemented yet.")
 }
