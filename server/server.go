@@ -320,7 +320,7 @@ func ServerDirectoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	authorName := dirPair.GitSignature.Name
 	authorEmail := dirPair.GitSignature.Email
-	err = addAndCommitDirectory(serverDirectoryFile, authorName, authorEmail, fmt.Sprintf("%s = %s ", key, address))
+	err = addAndCommitDirectory(serverDirectoryFile, authorName, authorEmail, fmt.Sprintf("Added new entry to server directory: %s = %s ", key, address))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Could not commit directory into git: %s", err.Error())

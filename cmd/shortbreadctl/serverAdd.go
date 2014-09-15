@@ -17,7 +17,8 @@ var (
 func init() {
 	serverAdd = &cobra.Command{
 		Use:   "server-add",
-		Short: "associate a servers URL with a name for easy recall. Example usage: shortbreadctl server-add example http://example.com",
+		Short: "associate a servers URL with a name for easy recall",
+		Long:  "associate a servers URL with a name for easy recall. Example usage: shortbreadctl server-add example http://example.com",
 		Run:   addServerToDirectory,
 	}
 }
@@ -42,7 +43,7 @@ func addServerToDirectory(c *cobra.Command, args []string) {
 		Value:        address,
 		GitSignature: gitSignature,
 	}
-	err = svc.Directory.UpdateUserDirectory(directoryPair).Do()
+	err = svc.Directory.UpdateServerDirectory(directoryPair).Do()
 	if err != nil {
 		log.Println(err)
 	}
