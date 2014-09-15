@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -28,11 +26,22 @@ type CertificatesAndMetaData struct {
 }
 type Fingerprint [16]byte
 type CertificateCollection map[Fingerprint][]*CertificatesAndMetaData
+type Directory map[string]string
 
-var Certificates CertificateCollection
-var remoteRepoUrl string
-var path string = filepath.Join(os.Getenv("HOME"), "ssh", "shortbread/certs/.git")
-var mutex = &sync.Mutex{}
+const (
+	serverDirectoryFile = "serverDirectory"
+	userDirectoryFile   = "userDirectory"
+)
+
+var (
+	Certificates    CertificateCollection
+	remoteRepoUrl   string
+	path            string = filepath.Join(os.Getenv("HOME"), "ssh", "shortbread/certs/.git")
+	gitWorkingDir   string
+	mutex           = &sync.Mutex{}
+	serverDirectory Directory
+	userDirectory   Directory
+)
 
 func init() {
 	Certificates = make(CertificateCollection)
@@ -40,7 +49,8 @@ func init() {
 		remoteRepoUrl = os.Args[1]
 		log.Printf("remote repo specified to be: %s\n", remoteRepoUrl)
 	}
-
+	serverDirectory = make(Directory)
+	userDirectory = make(Directory)
 	Certificates.initialize()
 }
 
@@ -51,6 +61,7 @@ func (c CertificateCollection) initialize() {
 		return
 	}
 	defer repo.Free()
+	gitWorkingDir = repo.Workdir()
 
 	index, err := repo.Index()
 	if err != nil {
@@ -67,6 +78,20 @@ func (c CertificateCollection) initialize() {
 		}
 		//add to the map only if path ends with `.pub` and after splitting on pathSeparator, length is 2.
 		certPath := indexEntry.Path
+		if certPath == serverDirectoryFile {
+			err := readServerDirectory(&serverDirectory, workingDir)
+			if err != nil {
+				log.Println("Server directory is empty ! Could not load directory from disk: ", err)
+			}
+
+		}
+
+		if certPath == userDirectoryFile {
+			err := readUserDirectory(&userDirectory, workingDir)
+			if err != nil {
+				log.Println("User directory is empty ! Could not load directory from disk: ", err)
+			}
+		}
 		certPathSlice := strings.Split(certPath, string(os.PathSeparator))
 		dirName := certPathSlice[0]
 		if strings.HasSuffix(certPath, "-cert.pub") && len(certPathSlice) == 2 && len(dirName) == 32 {
@@ -261,6 +286,48 @@ func SignHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ServerDirectoryHandler(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var dirPair api.DirectoryPair
+
+	err := decoder.Decode(&dirPair)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "%s", err.Error())
+		return
+	}
+	key := dirPair.Key
+	address := dirPair.Value
+
+	if val, ok := serverDirectory[key]; ok {
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprintf(w, "key %s already exists and is mapped to:  %s", key, val)
+		return
+	}
+
+	// update directory and commit to git
+	serverDirectory[key] = address
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	err = writeServerDirectory(&serverDirectory, gitWorkingDir)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Could not write directory to disk: %s", err.Error())
+		return
+	}
+
+	authorName := dirPair.GitSignature.Name
+	authorEmail := dirPair.GitSignature.Email
+	err = addAndCommitDirectory(serverDirectoryFile, authorName, authorEmail)
+	if err != ninl {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Could not commit directory into git: %s", err.Error())
+		return
+	}
+}
+
 func RevokeHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var revokeInfo api.RevokeCertificate
@@ -301,19 +368,10 @@ func ClientHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Fingerprint for a public key is the md5 sum of the base64 encoded key.
-func getFingerPrint(publicKey string) (fp Fingerprint, err error) {
-	data, err := base64.StdEncoding.DecodeString(strings.Split(publicKey, " ")[1])
-	if err != nil {
-		return fp, err
-	}
-	fp = md5.Sum(data)
-	return fp, nil
-}
-
 func main() {
 	http.HandleFunc("/v1/sign", SignHandler)
 	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.HandleFunc("/v1/getcerts/", ClientHandler)
+	htttp.HandleFunc("/v1/updateServerDirectory", ServerDirectoryHandler)
 	http.ListenAndServe(":8080", nil)
 }

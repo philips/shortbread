@@ -9,47 +9,45 @@ import (
 	"os"
 
 	"github.com/coreos/cobra"
+	"github.com/coreos/shortbread/util"
 )
-
-type directory map[string]string
 
 var (
-	serverAdd       *cobra.Command
-	serverDirectory *directory
-)
-
-const (
-	serverDirectoryFile = os.Getenv("$HOME/serverMapFile")
+	serverAdd *cobra.Command
 )
 
 func init() {
 	serverAdd = &cobra.Command{
 		Use:   "server-add",
-		Short: "associate a servers URL with a name for easy recall. Example usage: shortbreadctl server-add me http://127.0.0.1:8888/api/",
+		Short: "associate a servers URL with a name for easy recall. Example usage: shortbreadctl server-add example http://example.com",
 		Run:   addServerToDirectory,
 	}
-	serverDirectory = new(serverDirectory)
-	serverDirectory.initDirectory(serverMapFile)
 }
 
-// addServerToMap takes in the key value pair provided by the user and adds it to the serverDirectory.
-// The data is also backed up on disk.
+// addServerToMap takes in the key value pair provided by the user and adds it to the server directory on the Certifying authority server.
 func addServerToDirectory(c *cobra.Command, args []string) {
 	if len(args) != 2 {
-		fmt.Fprintf(os.Stderr, "command must have two arguments: type shortbreadctl help server-add for more information")
+		fmt.Fprintf(os.Stderr, "command must have two arguments: The server name and the server url.\nType shortbreadctl help server-add for more information")
 		return
 	}
 
 	key := args[0]
 	address := args[1]
 
-	if server, ok := serverDirectory[key]; ok {
-		oldAddress := server
-		fmt.Printf("warning: overriding existing key-value pair %s:%s with %s:%s", key, oldAddress, key, address)
+	svc, err := util.GetHTTPClientService(serverURL)
+	if err != nil {
+		log.Println(err)
 	}
 
-	serverDirectory[key] = address
-	serverDirectory.writeDirectoryToDisk(serverDirectoryFile)
+	directoryPair := &api.DirectoryPair{
+		Key:   key,
+		Value: address,
+		GitSignature: gitSignature,
+	}
+	err = svc.Directory.UpdateUserDirectory(directoryPair).Do()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 // initMap parses the encoded content in filePath and uses it to initialize the serverDirectory.
