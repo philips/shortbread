@@ -1,0 +1,221 @@
+{
+    "kind": "discovery#restDescription",
+    "discoveryVersion": "v1",
+    "id": "api:v1",
+    "name": "api",
+    "version": "v1",
+    "auth": {},
+    "title": "API to communicate with a centralized CA",
+    "description": "Lets you revoke, create or modify a certificate",
+    "documentationLink": "https://github.com/philips/shortbread", 
+    "protocol": "rest", 
+    "rootUrl": "https://www.example.com",
+    "servicePath": "/v1/",
+    "batchPath": "batch", 
+
+    "parameters": {
+	"alt": {
+	    "type": "string",
+	    "description": "Data format for the response.",
+	    "default": "json",
+	    "enum": [
+	        "json"
+	    ],
+	    "enumDescriptions": [
+	        "Responses with Content-Type of application/json"
+	    ],
+	    "location": "query"
+	},
+	"key": {
+	    "type": "string",
+	    "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+	    "location": "query"
+		}
+	  },
+    "schemas": {
+    "GitSignature":{
+    	"id": "GitSignature", 
+    	"type": "object", 
+    	"properties":{
+    		"name":{
+    			"type": "string"
+    		}, 
+    		"email":{
+    			"type": "string"
+    		}
+    	}
+    },
+    "DirectoryPair":{
+        "id": "Directory", 
+        "type": "object", 
+        "properties":{
+            "key":{
+                "type": "string"
+            }, 
+            "value":{
+                "type": "string", 
+                "format": "bytes"
+            }, 
+            "GitSignature":{
+                "$ref": "GitSignature"
+            }
+        }
+    },
+    "CertificateAndPrivateKey":{
+    	"id": "CertificateAndPrivateKey",
+    	"type": "object", 
+    	"properties":{
+    		"cert": {
+    			"type": "string", 
+    			"format": "bytes"
+    		},
+    		"privateKey": {
+    			"type": "string"
+    		}
+    	}
+    },
+    "CertificatesWithKey": {
+    	"id": "CertificatesWithKey", 
+    	"type": "object",
+    	"properties":{
+    		"list": {
+    			"type": "array", 
+    			"items": {
+    				"$ref": "CertificateAndPrivateKey"
+    			}
+    		}
+    	}
+    },
+	"Permissions": {	
+		"id": "Permissions", 
+		"type": "object",
+			"properties": {
+				"extensions": {
+					"type": "array", 
+					"items": {
+						"type" : "string"
+						}
+					}, 
+				"criticalOptions": {
+					"type": "array", 
+					"items": {
+						"type" : "string"
+					}
+				}	
+			}
+		},
+	"RevokeCertificate":{
+		"id": "RevokeCertificate", 
+		"type": "object", 
+		"properties": {
+			"User": {
+				"type": "string"
+			}, 
+			"Key": {
+				"type": "string", 
+				"format": "byte"
+			}
+		}
+	},
+	"CertificateInfoWithGitSignature": {
+		"id": "CertificateInfoWithGitSignature", 
+		"type": "object", 
+		"properties": {
+			"User": {
+				"type": "string"
+				}, 
+			"Permission": {
+				"$ref": "Permissions"
+				}, 
+			"ValidBefore": {
+				"type": "string",
+				"format": "uint64"
+			}, 
+			"ValidAfter": {
+				"type": "string",
+				"format": "uint64"
+			},
+			"CertType": {
+				"type": "string", 
+				"description": "only accepts HOST or USER"
+				},
+			"PrivateKey": {
+				"type": "string", 
+				"description": "path of the private key on the CA server"
+				}, 
+			"GitSignature": {
+				"$ref": "GitSignature"
+				}
+			} 
+		} 
+    },
+    "resources": {
+    	"cert": {
+    		"methods": {
+    			"sign": {
+    				"id": "api.cert.sign", 
+    				"path": "sign", 
+    				"httpMethod": "POST", 
+    				"request": {
+    					"$ref": "CertificateInfoWithGitSignature", 
+    					"parameterName": "certParams"
+	    			}
+    			}, 
+    			"revoke":{
+    				"id": "api.cert.revoke", 
+    				"path": "revoke", 
+    				"httpMethod": "PUT", 
+    				"request": {
+    					"$ref": "RevokeCertificate", 
+    					"parameterName": "revokeCertParams"
+    				}
+    			},
+    			"getCerts":{
+    				"id": "api.cert.getCerts", 
+    				"path": "getcerts/{publicKey}", 
+    				"httpMethod": "GET", 
+    				"parameters":{
+    					"publicKey":{
+    						"type": "string", 
+    						"format": "bytes",
+    						"location": "path",
+    						"default": "",
+    						"required": "true"
+    					}
+    				},
+    				"parameterOrder": [
+    					"publicKey"
+    				],
+    				"response": {
+    					"$ref": "CertificatesWithKey"
+    				}
+    			}
+    		}
+    	}, 
+        "directory":{
+            "methods":{
+                "updateServerDirectory":{
+                    "id": "api.directory.updateDirectory", 
+                    "path": "updateServerDirectory", 
+                    "httpMethod": "POST", 
+                    "request":{
+                        "$ref": "DirectoryPair", 
+                        "parameterName": "serverNameAndURL"
+                    }
+                }, 
+                "updateUserDirectory":{
+                    "id": "api.directory.updateUserDirectory", 
+                    "path": "updateUserDirectory", 
+                    "httpMethod": "POST", 
+                    "request":{
+                        "$ref": "DirectoryPair", 
+                        "parameterName": "userAndPublicKey"
+                    }
+                }
+            }
+        }
+	}
+}
+    
+    
+

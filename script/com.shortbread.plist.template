@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>Label</key>
+	<string>{{.OutputFileName}}</string>
+<key>ProgramArguments</key>
+<array>
+	<string>{{.PathToClientBinary}}</string>
+	<string>{{.ShortbreadServerURL}}</string>
+</array>
+<key>RunAtLoad</key>
+	<true/>
+<key>StandardErrorPath</key>
+	<string>{{.PathToErrorLog}}</string>
+<key>StandardOutPath</key>
+	<string>{{.PathToOutputLog}}</string>
+<key>StartInterval</key>
+	<integer>{{.TimeInterval}}</integer>
+</dict>
+</plist>
