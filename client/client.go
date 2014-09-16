@@ -81,7 +81,7 @@ func updateSSHAgent(certsWithKeyList []*api.CertificateAndPrivateKey, privateKey
 				break
 			}
 		}
-		err = sshAgent.Add(privateKeyInterface, cert, "certificated added by shortbread")
+		err = sshAgent.Add(privateKeyInterface, cert, "certificate added by shortbread")
 		if err != nil {
 			return err
 		}
