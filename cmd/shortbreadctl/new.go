@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"strings"
-	"time"
 
 	"code.google.com/p/go.crypto/ssh"
 
@@ -16,13 +15,14 @@ import (
 type permissions []string
 
 var (
-	updateUser      *cobra.Command
+	newCert         *cobra.Command
 	privateKey      string
 	validBefore     string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
 	validAfter      string // in DD-FullMonth-YYYY format, needs to be converted to unix time to match the specification
 	extensions      permissions
 	criticalOptions permissions
 	certType        string
+	user            string
 )
 
 // String is the method to format the flag's value, part of the flag.Value interface.
@@ -46,26 +46,27 @@ func (i *permissions) Type() string {
 }
 
 func init() {
-	updateUser = &cobra.Command{
-		Use:   "update",
-		Short: "generate a certificate for a new user or modify an existing one",
+	newCert = &cobra.Command{
+		Use:   "new",
+		Short: "generate a new certificate",
 		Run:   issueRequest,
 	}
 
-	updateUser.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
-	updateUser.Flags().StringVarP(&validBefore, "before", "b", "0", "specify the date(DD-January-YYYY) upto which the certificate is valid. Specify \"INFINITY\" if you want to issue a certificate that never expires")
-	updateUser.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
-	updateUser.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
-	updateUser.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
-	updateUser.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
-}
+	newCert.Flags().StringVarP(&privateKey, "private", "p", "", "specify the name of the private key to be used")
+	newCert.Flags().StringVarP(&validBefore, "before", "b", "INFINITY", "specify the date(DD-January-YYYY) upto which the certificate is valid. Default value is  \"INFINITY\" .")
+	newCert.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
+	newCert.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
+	newCert.Flags().VarP(&criticalOptions, "restrictions", "r", "comma separated list of permissions(restrictions) to place on the user")
+	newCert.Flags().StringVarP(&certType, "cert", "c", "USER", "choose from \"USER\" or \"HOST\"")
+	newCert.Flags().StringVarP(&user, "username", "u", "", "username of the entity to whom the certificate is issued. Must be a valid username stored in the user directory")
 
+}
 
 func issueRequest(c *cobra.Command, args []string) {
 	layout := "2-January-2006"
-	svc, err := util.GetHTTPClientService()
+	svc, err := util.GetHTTPClientService(serverURL)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 
 	var validAfterUnixTime uint64 = 0
@@ -74,47 +75,34 @@ func issueRequest(c *cobra.Command, args []string) {
 	if validBefore == "INFINITY" {
 		validBeforeUnixTime = ssh.CertTimeInfinity
 	} else {
-		validBeforeUnixTime, err = parseDate(layout, validBefore)
+		validBeforeUnixTime, err = util.ParseDate(layout, validBefore)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err.Error())
+			log.Println(err)
 		}
 	}
 
-	validAfterUnixTime, err = parseDate(layout, validAfter)
+	validAfterUnixTime, err = util.ParseDate(layout, validAfter)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		log.Println(err)
 	}
 
-	crtInfo := &api.CertificateInfo{
-		CertType: certType, 
+	crtInfo := &api.CertificateInfoWithGitSignature{
+		CertType: certType,
 		Permission: &api.Permissions{
 			Extensions:      extensions,
 			CriticalOptions: criticalOptions,
 		},
 		User:        user,
-		Key:         util.LoadPublicKey(key),
 		PrivateKey:  privateKey,
 		ValidAfter:  validAfterUnixTime,
 		ValidBefore: validBeforeUnixTime,
+
+		GitSignature: gitSignature, // see shortbreadctl.go
 	}
 
 	crtSvc := api.NewCertService(svc)
 	err = crtSvc.Sign(crtInfo).Do()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		log.Println(err)
 	}
-}
-
-// parseDate converts the date into Unix Time (time since 1st Jan 1970 in seconds)
-func parseDate(layout, value string) (uint64, error) {
-	if value == "0" {
-		return 0, nil
-	}
-
-	t, err := time.Parse(layout, value)
-	if err != nil {
-		return 0, err
-	}
-
-	return uint64(t.Unix()), nil
 }

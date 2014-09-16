@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"code.google.com/p/go.crypto/ssh"
 
@@ -13,12 +14,14 @@ import (
 )
 
 const (
-	SHORTBREADCTL_URL = "SHORTBREADCTL_URL"
-	defaultURL        = "http://localhost:8080/v1/"
+	defaultURL = "http://localhost:8889/v1/"
 )
 
-func GetHTTPClientService() (*api.Service, error) {
-	return getHTTPClientService(GetenvWithDefault(SHORTBREADCTL_URL, defaultURL))
+func GetHTTPClientService(serverURL string) (*api.Service, error) {
+	if serverURL == "" {
+		serverURL = defaultURL
+	}
+	return getHTTPClientService(serverURL)
 }
 
 func getHTTPClientService(basePath string) (*api.Service, error) {
@@ -81,4 +84,18 @@ func GetenvWithDefault(variable, defaultValue string) string {
 		return v
 	}
 	return defaultValue
+}
+
+// ParseDate converts the date into Unix Time (time since 1st Jan 1970 in seconds)
+func ParseDate(layout, value string) (uint64, error) {
+	if value == "0" {
+		return 0, nil
+	}
+
+	t, err := time.Parse(layout, value)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint64(t.Unix()), nil
 }

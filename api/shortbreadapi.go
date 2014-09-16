@@ -45,6 +45,7 @@ func New(client *http.Client) (*Service, error) {
 	}
 	s := &Service{client: client, BasePath: basePath}
 	s.Cert = NewCertService(s)
+	s.Directory = NewDirectoryService(s)
 	return s, nil
 }
 
@@ -53,6 +54,8 @@ type Service struct {
 	BasePath string // API endpoint base URL
 
 	Cert *CertService
+
+	Directory *DirectoryService
 }
 
 func NewCertService(s *Service) *CertService {
@@ -64,17 +67,26 @@ type CertService struct {
 	s *Service
 }
 
+func NewDirectoryService(s *Service) *DirectoryService {
+	rs := &DirectoryService{s: s}
+	return rs
+}
+
+type DirectoryService struct {
+	s *Service
+}
+
 type CertificateAndPrivateKey struct {
 	Cert string `json:"cert,omitempty"`
 
 	PrivateKey string `json:"privateKey,omitempty"`
 }
 
-type CertificateInfo struct {
+type CertificateInfoWithGitSignature struct {
 	// CertType: only accepts HOST or USER
 	CertType string `json:"CertType,omitempty"`
 
-	Key string `json:"Key,omitempty"`
+	GitSignature *GitSignature `json:"GitSignature,omitempty"`
 
 	Permission *Permissions `json:"Permission,omitempty"`
 
@@ -90,6 +102,20 @@ type CertificateInfo struct {
 
 type CertificatesWithKey struct {
 	List []*CertificateAndPrivateKey `json:"list,omitempty"`
+}
+
+type DirectoryPair struct {
+	GitSignature *GitSignature `json:"GitSignature,omitempty"`
+
+	Key string `json:"key,omitempty"`
+
+	Value string `json:"value,omitempty"`
+}
+
+type GitSignature struct {
+	Email string `json:"email,omitempty"`
+
+	Name string `json:"name,omitempty"`
 }
 
 type Permissions struct {
@@ -229,21 +255,21 @@ func (c *CertRevokeCall) Do() error {
 // method id "api.cert.sign":
 
 type CertSignCall struct {
-	s               *Service
-	certificateinfo *CertificateInfo
-	opt_            map[string]interface{}
+	s                               *Service
+	certificateinfowithgitsignature *CertificateInfoWithGitSignature
+	opt_                            map[string]interface{}
 }
 
 // Sign:
-func (r *CertService) Sign(certificateinfo *CertificateInfo) *CertSignCall {
+func (r *CertService) Sign(certificateinfowithgitsignature *CertificateInfoWithGitSignature) *CertSignCall {
 	c := &CertSignCall{s: r.s, opt_: make(map[string]interface{})}
-	c.certificateinfo = certificateinfo
+	c.certificateinfowithgitsignature = certificateinfowithgitsignature
 	return c
 }
 
 func (c *CertSignCall) Do() error {
 	var body io.Reader = nil
-	body, err := googleapi.WithoutDataWrapper.JSONReader(c.certificateinfo)
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.certificateinfowithgitsignature)
 	if err != nil {
 		return err
 	}
@@ -270,8 +296,110 @@ func (c *CertSignCall) Do() error {
 	//   "id": "api.cert.sign",
 	//   "path": "sign",
 	//   "request": {
-	//     "$ref": "CertificateInfo",
+	//     "$ref": "CertificateInfoWithGitSignature",
 	//     "parameterName": "certParams"
+	//   }
+	// }
+
+}
+
+// method id "api.directory.updateDirectory":
+
+type DirectoryUpdateServerDirectoryCall struct {
+	s             *Service
+	directorypair *DirectoryPair
+	opt_          map[string]interface{}
+}
+
+// UpdateServerDirectory:
+func (r *DirectoryService) UpdateServerDirectory(directorypair *DirectoryPair) *DirectoryUpdateServerDirectoryCall {
+	c := &DirectoryUpdateServerDirectoryCall{s: r.s, opt_: make(map[string]interface{})}
+	c.directorypair = directorypair
+	return c
+}
+
+func (c *DirectoryUpdateServerDirectoryCall) Do() error {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.directorypair)
+	if err != nil {
+		return err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "updateServerDirectory")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "api.directory.updateDirectory",
+	//   "path": "updateServerDirectory",
+	//   "request": {
+	//     "$ref": "DirectoryPair",
+	//     "parameterName": "serverNameAndURL"
+	//   }
+	// }
+
+}
+
+// method id "api.directory.updateUserDirectory":
+
+type DirectoryUpdateUserDirectoryCall struct {
+	s             *Service
+	directorypair *DirectoryPair
+	opt_          map[string]interface{}
+}
+
+// UpdateUserDirectory:
+func (r *DirectoryService) UpdateUserDirectory(directorypair *DirectoryPair) *DirectoryUpdateUserDirectoryCall {
+	c := &DirectoryUpdateUserDirectoryCall{s: r.s, opt_: make(map[string]interface{})}
+	c.directorypair = directorypair
+	return c
+}
+
+func (c *DirectoryUpdateUserDirectoryCall) Do() error {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.directorypair)
+	if err != nil {
+		return err
+	}
+	ctype := "application/json"
+	params := make(url.Values)
+	params.Set("alt", "json")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "updateUserDirectory")
+	urls += "?" + params.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", "google-api-go-client/0.5")
+	res, err := c.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "api.directory.updateUserDirectory",
+	//   "path": "updateUserDirectory",
+	//   "request": {
+	//     "$ref": "DirectoryPair",
+	//     "parameterName": "userAndPublicKey"
 	//   }
 	// }
 

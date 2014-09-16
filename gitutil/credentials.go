@@ -1,11 +1,9 @@
 package gitutil
 
 import (
-	"log"
 	"os"
 
 	"github.com/coreos/shortbread/util"
-
 	git "github.com/libgit2/git2go"
 )
 
@@ -15,7 +13,6 @@ const (
 
 // getCredentials uses the private key location specified by $SHORTBREAD_GIT to create the credentials required for a successful SSH connection.
 func getCredentials(url string, username_from_url string, allowed_types git.CredType) (int, *git.Cred) {
-	log.Println("username from url is ", username_from_url)
 	privateKey := util.GetenvWithDefault(GitAuthenticationKeyLocation, os.ExpandEnv("$HOME/.ssh/id_rsa"))
 	publicKey := privateKey + ".pub"
 

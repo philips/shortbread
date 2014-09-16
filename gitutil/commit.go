@@ -11,9 +11,9 @@ const (
 	MasterRef = "refs/heads/master"
 )
 
-// GitAddAndCommit provides a convenient way of creating commits. Simply provide the (relative)paths of the files you want to stage as well as a commit message.
+// AddAndCommit provides a convenient way of creating commits. Simply provide the (relative)paths of the files you want to stage as well as a commit message.
 // equivalent to executing: git add /path/to/files.go and git commit -m "message"
-func AddAndCommit(repo *git.Repository, paths []string, message string) error {
+func AddAndCommit(repo *git.Repository, paths []string, message, authorName, authorEmail string) error {
 	if message == "" {
 		return errors.New("commit message empty")
 	}
@@ -24,21 +24,35 @@ func AddAndCommit(repo *git.Repository, paths []string, message string) error {
 	}
 	defer tree.Free()
 
-	err = gitCommit(repo, message, tree)
+	err = gitCommit(repo, message, tree, authorName, authorEmail)
 	return err
 }
 
-func gitCommit(repo *git.Repository, message string, tree *git.Tree) error {
-	signature := &git.Signature{
-		Name:  "shantanu",
-		Email: "shantanu.joshi@coreos.com",
-		When:  time.Now(),
+func gitCommit(repo *git.Repository, message string, tree *git.Tree, authorName, authorEmail string) error {
+	commitSignature := &git.Signature{
+		Name: "shortbread", 
+		Email: "shortbread@example.com", 
+		When: time.Now(),
 	}
-	parentCommit := make([]*git.Commit, 0)
 
+	if authorName == "" {
+		authorName = commitSignature.Name
+	}
+
+	if authorEmail == "" {
+		authorEmail = commitSignature.Email
+	}
+
+	signature := &git.Signature{
+		Name: authorName, 
+		Email: authorEmail, 
+		When: time.Now(), 
+	}
+
+	parentCommit := make([]*git.Commit, 0)
 	master, err := repo.LookupReference(MasterRef)
 	if err != nil {
-		_, err = repo.CreateCommit(MasterRef, signature, signature, message, tree, parentCommit...)
+		_, err = repo.CreateCommit(MasterRef, signature, commitSignature, message, tree, parentCommit...)
 		return err
 	}
 	defer master.Free()
@@ -50,6 +64,6 @@ func gitCommit(repo *git.Repository, message string, tree *git.Tree) error {
 	}
 
 	parentCommit = append(parentCommit, c)
-	_, err = repo.CreateCommit(MasterRef, signature, signature, message, tree, parentCommit...)
+	_, err = repo.CreateCommit(MasterRef, signature, commitSignature, message, tree, parentCommit...)
 	return err
 }

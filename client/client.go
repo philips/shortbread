@@ -2,13 +2,11 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
 	"os"
 	"strings"
-	"time"
 
 	"code.google.com/p/go.crypto/ssh"
 	"code.google.com/p/go.crypto/ssh/agent"
@@ -17,36 +15,37 @@ import (
 	"github.com/coreos/shortbread/util"
 )
 
-const (
-	SHORTBREAD_PUBLIC_KEY = "SHORTBREAD_PUBLIC_KEY"
-)
-
 func main() {
-	svc, err := util.GetHTTPClientService()
+	if len(os.Args) < 2 {
+		log.Println("Usage: client http://server:port/v1/")
+		os.Exit(2)
+	}
+	serverURL := os.Args[1]
+
+	svc, err := util.GetHTTPClientService(serverURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("call to util.GetHTTPClientService failed: %s\n", err.Error())
+		return
 	}
 
 	crtSvc := api.NewCertService(svc)
-	publicKeyPath := util.GetenvWithDefault(SHORTBREAD_PUBLIC_KEY, os.ExpandEnv("$HOME/.ssh/id_rsa.pub"))
+	// TODO allow user to specify multiple keys instead of enforcing id_rsa.pub
+	publicKeyPath := os.ExpandEnv("$HOME/.ssh/id_rsa.pub")
 	privateKeyPath := strings.Split(publicKeyPath, ".pub")[0]
 	pk := util.LoadPublicKey(publicKeyPath)
 
-	for {
-		time.Sleep(2000 * time.Millisecond)
-		certsWithKey, err := crtSvc.GetCerts(pk).Do()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s", err.Error())
-		}
-		err = updateSSHAgent(certsWithKey.List, privateKeyPath)
-		if err != nil {
-			log.Fatal(err)
-		}
+	certsWithKey, err := crtSvc.GetCerts(pk).Do()
+	if err != nil {
+		log.Printf("Get request to API failed: %s\n", err.Error())
+		return
+	}
+	err = updateSSHAgent(certsWithKey.List, privateKeyPath)
+	if err != nil {
+		log.Printf("Failed to updateSSHAgent: %s\n", err.Error())
 	}
 }
 
 // updateSSHAgent takes the list of certificates and path to the private key (corresponding to the signed public key). Adds the cert if it's not present in the agent.
-// If the CA has sent an updated cert then it removes the existing one from the agent and adds the upadated certificate.
 func updateSSHAgent(certsWithKeyList []*api.CertificateAndPrivateKey, privateKeyPath string) error {
 	conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
 	if err != nil {
@@ -82,7 +81,7 @@ func updateSSHAgent(certsWithKeyList []*api.CertificateAndPrivateKey, privateKey
 				break
 			}
 		}
-		err = sshAgent.Add(privateKeyInterface, cert, "certificated added by shortbread")
+		err = sshAgent.Add(privateKeyInterface, cert, "certificate added by shortbread")
 		if err != nil {
 			return err
 		}
