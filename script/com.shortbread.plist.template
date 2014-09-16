@@ -3,19 +3,19 @@
 <plist version="1.0">
 <dict>
 <key>Label</key>
-	<string>com.test</string>
+	<string>{{.OutputFileName}}</string>
 <key>ProgramArguments</key>
 <array>
-	<string>/Users/shantanu/Golang/src/github.com/coreos/shortbread/bin/client</string>
-	<string>http://ec2-54-211-180-127.compute-1.amazonaws.com:8889/v1/</string>
+	<string>{{.PathToClientBinary}}</string>
+	<string>{{.ShortbreadServerURL}}</string>
 </array>
 <key>RunAtLoad</key>
 	<true/>
 <key>StandardErrorPath</key>
-	<string>/Users/shantanu/sillyscript/sillyscript_err.log</string>
+	<string>{{.PathToErrorLog}}</string>
 <key>StandardOutPath</key>
-	<string>/Users/shantanu/sillyscript/sillyscript.log</string>
+	<string>{{.PathToOutputLog}}</string>
 <key>StartInterval</key>
-	<integer>300</integer>
+	<integer>{{.TimeInterval}}</integer>
 </dict>
 </plist>

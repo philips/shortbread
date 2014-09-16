@@ -14,3 +14,4 @@ eval $(go env)
 go install github.com/coreos/shortbread/cmd/shortbreadctl
 go install github.com/coreos/shortbread/server
 go build -o ${CLIENT_PATH} client/client.go
+go install github.com/coreos/shortbread/generatePlist

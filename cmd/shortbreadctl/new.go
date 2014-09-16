@@ -52,7 +52,7 @@ func init() {
 		Run:   issueRequest,
 	}
 
-	newCert.Flags().StringVarP(&privateKey, "private", "p", "", "specify the path of the private key to be used in creating the certificate")
+	newCert.Flags().StringVarP(&privateKey, "private", "p", "", "specify the name of the private key to be used")
 	newCert.Flags().StringVarP(&validBefore, "before", "b", "INFINITY", "specify the date(DD-January-YYYY) upto which the certificate is valid. Default value is  \"INFINITY\" .")
 	newCert.Flags().StringVarP(&validAfter, "after", "a", "0", "specify the initial date(DD-January-YYYY) from which the certificate will be valid")
 	newCert.Flags().VarP(&extensions, "extensions", "e", "comma separated list of permissions(extesions) to bestow upon the user")
