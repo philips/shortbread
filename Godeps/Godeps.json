@@ -6,6 +6,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/gcfg",
+			"Rev": "6a36aea495f9671f90228b8bee8f0ab16e6e173e"
+		},
+		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh",
 			"Comment": "null-219",
 			"Rev": "00a7d3b31bbab5795b4a51933c04fc2768242970"

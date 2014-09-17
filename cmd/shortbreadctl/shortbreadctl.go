@@ -4,16 +4,25 @@ import (
 	"log"
 	"os"
 
+	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/gcfg"
+
 	"github.com/coreos/shortbread/Godeps/_workspace/src/github.com/coreos/cobra"
 	"github.com/coreos/shortbread/api"
-	git "github.com/coreos/shortbread/Godeps/_workspace/src/github.com/libgit2/git2go"
 )
 
 var (
 	shortbreadCtl *cobra.Command
 	serverURL     string
+	gitcfg        *GitConfig
 	gitSignature  *api.GitSignature
 )
+
+type GitConfig struct {
+	User struct {
+		Name  string
+		Email string
+	}
+}
 
 const (
 	shortbreadctlURL = "SHORTBREADCTL_URL"
@@ -24,14 +33,8 @@ func init() {
 		Use:   "shortbreadctl",
 		Short: "A command line tool to interact with the CA server and issue/revoke/modify user and host certificates",
 	}
-	gitconfig, err := git.NewConfig()
-	if err != nil {
-		log.Fatalf("unable to create git gitSignature object: %s", err.Error())
-	}
-
-	gitconfig.AddFile(os.ExpandEnv("$HOME/.gitconfig"), git.ConfigLevelGlobal, false)
-	gitSignature = gitSignatureFromConfig(gitconfig)
-
+	gitcfg = new(GitConfig)
+	gitSignatureFromConfig(gitcfg, os.ExpandEnv("$HOME/.gitconfig"))
 	serverURL = os.Getenv(shortbreadctlURL)
 }
 
@@ -43,20 +46,15 @@ func main() {
 	shortbreadCtl.Execute()
 }
 
-// getSignatureFromConfig returns the api.GitSignature object with a users email and name from the ~/.gitconfig file. Each field is initialized to an empty string by default.
-func gitSignatureFromConfig(config *git.Config) *api.GitSignature {
-	name, err := config.LookupString("user.name")
-	if err != nil {
-		log.Println(err)
+// getSignatureFromConfig returns the *GitConfig object with a users email and name from the ~/.gitconfig file. Each field is initialized to an empty string by default.
+func gitSignatureFromConfig(gitcfg *GitConfig, configFile string) {
+	err := gcfg.ReadFileInto(gitcfg, configFile)
+	if err != nil && gitcfg.User.Email == "" && gitcfg.User.Name == "" {
+		log.Printf("Failed to parse gitconfig data: %s\n Using default value for git signature", err)
 	}
 
-	email, err := config.LookupString("user.email")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return &api.GitSignature{
-		Name:  name,
-		Email: email,
+	gitSignature = &api.GitSignature{
+		Name:  gitcfg.User.Name,
+		Email: gitcfg.User.Email,
 	}
 }

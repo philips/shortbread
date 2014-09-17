@@ -11,7 +11,7 @@ package api
 
 import (
 	"bytes"
-	"code.google.com/p/google-api-go-client/googleapi"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/google-api-go-client/googleapi"
 	"encoding/json"
 	"errors"
 	"fmt"
