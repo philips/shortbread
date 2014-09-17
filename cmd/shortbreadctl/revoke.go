@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/coreos/cobra"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/github.com/coreos/cobra"
 )
 
 var (

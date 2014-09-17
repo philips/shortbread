@@ -21,4 +21,6 @@ _testmain.go
 
 script/com.shortbread.client.plist
 script/*.log
+
 Godeps/_workspace/src/github.com/coreos/shortbread
+Godeps/_workspace/src/github.com/libgit2/git2go/vendor/libgit2/build/CMakeCache.txt

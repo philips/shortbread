@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	"code.google.com/p/go.crypto/ssh"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/go.crypto/ssh"
 	"github.com/coreos/shortbread/api"
 	"github.com/coreos/shortbread/gitutil"
 	"github.com/coreos/shortbread/util"

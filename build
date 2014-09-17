@@ -3,7 +3,6 @@
 set -e 
 
 . ./build-api
-
 export GOBIN=${PWD}/bin
 
 SERVER_PATH="bin/server"

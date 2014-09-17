@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/coreos/shortbread/util"
-	git "github.com/libgit2/git2go"
+	git "github.com/coreos/shortbread/Godeps/_workspace/src/github.com/libgit2/git2go"
 )
 
 const (
