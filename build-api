@@ -3,7 +3,6 @@
 set -e 
 
 GOPATHTEMP=${GOPATH}
-echo $GOPATHTEMP
 export GOPATH="${PWD}/Godeps/_workspace"
 eval $(go env) 
 GEN_PATH="bin/google-api-go-generator"

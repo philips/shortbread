@@ -1,6 +1,7 @@
 #!/bin/sh 
 
 set -e
+
 . ./build-api
 export GOBIN=${PWD}/bin 
 eval $(go env) 
