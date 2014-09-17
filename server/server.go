@@ -242,36 +242,6 @@ func (c CertificateCollection) New(params api.CertificateInfoWithGitSignature) e
 	return nil
 }
 
-// Revoke uses the public key provided in the request to delete the corresponding certificate
-// from the map. If an username is provided then a certificate is deleted only if it's listed as a valid principal
-func (c CertificateCollection) Revoke(revokeInfo api.RevokeCertificate) error {
-	fingerprint, err := getFingerPrint(revokeInfo.Key)
-	if err != nil {
-		return err
-	}
-
-	certs, ok := c[fingerprint]
-	if !ok {
-		return errors.New("certificate not found, check if you have specified the correct public key")
-	}
-
-	user := revokeInfo.User
-	checkPrincipal := func(certs []*CertificatesAndMetaData, principal string) bool {
-		for _, certData := range certs {
-			if certData.cert.ValidPrincipals[0] == principal {
-				return true
-			}
-		}
-		return false
-	}
-	if user != "" && checkPrincipal(certs, user) {
-		return errors.New("certificate's valid principal differs from username provided")
-	}
-
-	delete(c, fingerprint)
-	return nil
-}
-
 // SignHandler creates a new certificate from the parameters specified in the request.
 func SignHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
@@ -375,24 +345,6 @@ func UserDirectoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RevokeHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var revokeInfo api.RevokeCertificate
-
-	err := decoder.Decode(&revokeInfo)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "%s", err.Error())
-		return
-	}
-
-	err = Certificates.Revoke(revokeInfo)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "%s", err.Error())
-	}
-}
-
 func ClientHandler(w http.ResponseWriter, r *http.Request) {
 	fingerprint, _ := getFingerPrint(strings.SplitN(r.URL.Path, "/", 4)[3])
 	certs, ok := Certificates[fingerprint]
@@ -417,7 +369,6 @@ func ClientHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/v1/sign", SignHandler)
-	http.HandleFunc("/v1/revoke", RevokeHandler)
 	http.HandleFunc("/v1/getcerts/", ClientHandler)
 	http.HandleFunc("/v1/updateServerDirectory", ServerDirectoryHandler)
 	http.HandleFunc("/v1/updateUserDirectory", UserDirectoryHandler)

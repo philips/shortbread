@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/gcfg"
+	"code.google.com/p/gcfg"
 
 	"github.com/coreos/shortbread/Godeps/_workspace/src/github.com/coreos/cobra"
 	"github.com/coreos/shortbread/api"
@@ -40,7 +40,6 @@ func init() {
 
 func main() {
 	shortbreadCtl.AddCommand(newCert)
-	shortbreadCtl.AddCommand(revokeCert)
 	shortbreadCtl.AddCommand(serverAdd)
 	shortbreadCtl.AddCommand(userAdd)
 	shortbreadCtl.Execute()
