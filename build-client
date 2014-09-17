@@ -1,13 +1,11 @@
 #!/bin/sh 
 
 set -e 
-
 . ./build-api
 
 export GOBIN=${PWD}/bin
-
 CLIENT_PATH="bin/client"
-
 eval $(go env)
+
 go build -o ${CLIENT_PATH} client/client.go
 go install github.com/coreos/shortbread/generatePlist

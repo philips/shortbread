@@ -11,10 +11,10 @@ package api
 
 import (
 	"bytes"
-	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/google-api-go-client/googleapi"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/google-api-go-client/googleapi"
 	"io"
 	"net/http"
 	"net/url"
