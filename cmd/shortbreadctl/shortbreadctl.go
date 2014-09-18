@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"code.google.com/p/gcfg"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/gcfg"
 
 	"github.com/coreos/shortbread/Godeps/_workspace/src/github.com/coreos/cobra"
 	"github.com/coreos/shortbread/api"
