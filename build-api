@@ -1,18 +1,11 @@
 #!/bin/sh 
 
 set -e 
-
-GOPATHTEMP=${GOPATH}
-export GOPATH="${PWD}/Godeps/_workspace"
-eval $(go env) 
 GEN_PATH="bin/google-api-go-generator"
 
 if [ ! -f ${GEN_PATH} ]; then 
-  go build -o ${GEN_PATH} code.google.com/p/google-api-go-client/google-api-go-generator
+  go build -o ${GEN_PATH} github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/google-api-go-client/google-api-go-generator
 fi
-
-export GOPATH=${GOPATHTEMP}
-eval $(go env) 
 
 ./bin/google-api-go-generator \
      -googleapi_pkg "github.com/coreos/shortbread/Godeps/_workspace/src/code.google.com/p/google-api-go-client/googleapi" \
