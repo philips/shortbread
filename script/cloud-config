@@ -25,8 +25,8 @@ coreos:
         Environment="HOME=/root"
         ExecStartPre=-/usr/bin/docker kill shortbread_server
         ExecStartPre=-/usr/bin/docker rm shortbread_server
-        ExecStartPre=/usr/bin/docker pull quay.io/shantanu/shortbread
-        ExecStart=/usr/bin/docker run -p 8889:8080 -v /etc/ssh:/root/ssh --name shortbread_server quay.io/shantanu/shortbread
+        ExecStartPre=/usr/bin/docker pull quay.io/coreos/shortbread:v0.1.0-rc
+        ExecStart=/usr/bin/docker run -p 8889:8080 -v /etc/ssh:/root/ssh --name shortbread_server quay.io/coreos/shortbread:v0.1.0-rc
         ExecStop=/usr/bin/docker stop shortbread_server
         [Install]
         WantedBy=multi-user.target
@@ -37,7 +37,7 @@ write_files:
     content: |
       {
        "https://quay.io/v1/": {
-        "auth": "JHRva2VuOjA0MFUwTEZPS1cyUDgxSDNBTUUwTU1WN0RONzRLWkVYTjdUREozQTZRSkpDNEhKN1ZMSUc4UENJVzhDS0gzWDA=",
+        "auth": "JHRva2VuOjFDNzZDVkxFSTZZNE1BSVk3VE1BN0xNNTEwRVhZSlk2U0Y4Rkk2R1E3NFNWM1JLTlRFWEZCWjIyOEZJSkFFV0U=",
         "email": ""
         }
       }
