@@ -1,0 +1,77 @@
+#!/bin/sh -e
+
+set -e 
+
+VER=$1
+ORGPATH="src/github.com/coreos"
+
+REPODIR=${ORGPATH}/${proj}
+
+function build {
+	proj=${1}
+	ver=${2}
+
+	if [ ! -d ${REPODIR} ]; then
+		#joshi4->coreos
+		git clone https://github.com/joshi4/${proj} ${REPODIR} 
+	fi
+  
+  export GOPATH="${PWD}"
+  eval $(go env) 
+  cd ${REPODIR}
+	
+  git checkout master
+	git fetch --all
+	git reset --hard origin/master
+	git checkout $ver
+	
+  ./build
+	cd -
+}
+
+function package {
+	proj=${1}
+	target=${2}
+
+	ccdir="${REPODIR}/bin/${GOOS}_${GOARCH}"
+	if [ -d ${ccdir} ]; then
+		cp ${ccdir}/${proj}* ${target}
+	else
+		cp ${REPODIR}/bin/shortbreadctl  ${target}
+		cp ${REPODIR}/bin/client ${target}
+    		if [ $GOOS = "darwin" ]; then 
+		  cp ${REPODIR}/bin/generatePlist ${target}
+   		 fi 
+ 	fi
+
+	cp ${REPODIR}/README.md ${target}/README-${proj}.md
+	cp ${REPODIR}/Documentation/documentation.md ${target}/documentation-${proj}.md
+}
+
+mkdir release
+cd release
+
+for i in darwin linux windows; do
+	export GOOS=${i}
+	export GOARCH="amd64"
+
+	build shortbread ${VER}
+
+	TARGET="shortbread-${VER}-${GOOS}-${GOARCH}"
+	mkdir ${TARGET}
+
+	package shortbread ${TARGET}
+
+	if [ ${GOOS} == "linux" ]; then
+		tar cvvfz ${TARGET}.tar.gz ${TARGET}
+	else
+		zip -r ${TARGET}.zip ${TARGET}
+	fi
+
+  rm -rf ${TARGET}
+done
+
+# cleanup 
+
+rm -rf src
+rm -rf pkg
