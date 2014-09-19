@@ -104,19 +104,6 @@
 				}	
 			}
 		},
-	"RevokeCertificate":{
-		"id": "RevokeCertificate", 
-		"type": "object", 
-		"properties": {
-			"User": {
-				"type": "string"
-			}, 
-			"Key": {
-				"type": "string", 
-				"format": "byte"
-			}
-		}
-	},
 	"CertificateInfoWithGitSignature": {
 		"id": "CertificateInfoWithGitSignature", 
 		"type": "object", 
@@ -161,15 +148,6 @@
     					"parameterName": "certParams"
 	    			}
     			}, 
-    			"revoke":{
-    				"id": "api.cert.revoke", 
-    				"path": "revoke", 
-    				"httpMethod": "PUT", 
-    				"request": {
-    					"$ref": "RevokeCertificate", 
-    					"parameterName": "revokeCertParams"
-    				}
-    			},
     			"getCerts":{
     				"id": "api.cert.getCerts", 
     				"path": "getcerts/{publicKey}", 

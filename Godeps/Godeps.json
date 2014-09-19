@@ -1,0 +1,40 @@
+{
+	"ImportPath": "github.com/coreos/shortbread",
+	"GoVersion": "go1.3.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/gcfg",
+			"Rev": "6a36aea495f9671f90228b8bee8f0ab16e6e173e"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh",
+			"Comment": "null-219",
+			"Rev": "00a7d3b31bbab5795b4a51933c04fc2768242970"
+		},
+		{
+			"ImportPath": "code.google.com/p/google-api-go-client/google-api-go-generator",
+			"Comment": "release-101",
+			"Rev": "e1c259484b495133836706f46319f5897f1e9bf6"
+		},
+		{
+			"ImportPath": "code.google.com/p/google-api-go-client/googleapi",
+			"Comment": "release-101",
+			"Rev": "e1c259484b495133836706f46319f5897f1e9bf6"
+		},
+		{
+			"ImportPath": "github.com/coreos/cobra",
+			"Rev": "864687ae689edc28688c67edef47e3d2ad651a1b"
+		},
+		{
+			"ImportPath": "github.com/libgit2/git2go",
+			"Rev": "84597241e0636c7b56ae88167940b029680784e8"
+		},
+		{
+			"ImportPath": "github.com/spf13/pflag",
+			"Rev": "463bdc838f2b35e9307e91d480878bda5fff7232"
+		}
+	]
+}

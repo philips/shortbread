@@ -1,6 +1,6 @@
 package gitutil
 
-import git "github.com/libgit2/git2go"
+import git "github.com/coreos/shortbread/Godeps/_workspace/src/github.com/libgit2/git2go"
 
 // gitAdd returns the tree object created by adding files to the index.
 func gitAdd(repo *git.Repository, paths ...string) (*git.Tree, error) {

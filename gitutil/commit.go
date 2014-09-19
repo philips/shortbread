@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	git "github.com/libgit2/git2go"
+	git "github.com/coreos/shortbread/Godeps/_workspace/src/github.com/libgit2/git2go"
 )
 
 const (
@@ -30,9 +30,9 @@ func AddAndCommit(repo *git.Repository, paths []string, message, authorName, aut
 
 func gitCommit(repo *git.Repository, message string, tree *git.Tree, authorName, authorEmail string) error {
 	commitSignature := &git.Signature{
-		Name: "shortbread", 
-		Email: "shortbread@example.com", 
-		When: time.Now(),
+		Name:  "shortbread",
+		Email: "shortbread@example.com",
+		When:  time.Now(),
 	}
 
 	if authorName == "" {
@@ -44,9 +44,9 @@ func gitCommit(repo *git.Repository, message string, tree *git.Tree, authorName,
 	}
 
 	signature := &git.Signature{
-		Name: authorName, 
-		Email: authorEmail, 
-		When: time.Now(), 
+		Name:  authorName,
+		Email: authorEmail,
+		When:  time.Now(),
 	}
 
 	parentCommit := make([]*git.Commit, 0)
