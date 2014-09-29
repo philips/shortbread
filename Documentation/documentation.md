@@ -5,8 +5,13 @@ There are 3 distinct pieces to shortbread. The CA server, commandline tool and c
 If you are not familiar with the concept of SSH certificates [this](https://www.digitalocean.com/community/tutorials/how-to-create-an-ssh-ca-to-validate-hosts-and-clients-with-ubuntu) tutorial is a great place to start. 
 
 ----
+### Getting Shortbread
 
-## Build Instructions
+#### Downloading Binaries 
+
+The binaries for shortbreadctl and the client are available in the Downloads folder. We currently provide binaries for OS X, Linux and Windows. 
+
+#### Build Instructions
 
 The Shortbread client can be built by simply executing the build-client script as shown below : 
 
