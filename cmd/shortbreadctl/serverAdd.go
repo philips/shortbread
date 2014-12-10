@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/coreos/cobra"
+	"github.com/coreos/shortbread/Godeps/_workspace/src/github.com/coreos/cobra"
 	"github.com/coreos/shortbread/api"
 	"github.com/coreos/shortbread/util"
 )

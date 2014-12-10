@@ -4,7 +4,7 @@ import (
 	"log"
 	"strings"
 
-	git "github.com/libgit2/git2go"
+	git "github.com/coreos/shortbread/Godeps/_workspace/src/github.com/libgit2/git2go"
 )
 
 // OpenRepository returns a pointer to the local repo specified by `path`. If a local repo does not exist then it creates one by cloning the repo located at `url`

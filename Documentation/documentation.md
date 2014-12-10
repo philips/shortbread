@@ -5,14 +5,45 @@ There are 3 distinct pieces to shortbread. The CA server, commandline tool and c
 If you are not familiar with the concept of SSH certificates [this](https://www.digitalocean.com/community/tutorials/how-to-create-an-ssh-ca-to-validate-hosts-and-clients-with-ubuntu) tutorial is a great place to start. 
 
 ----
+### Getting Shortbread
 
-## Build Instructions
+#### Downloading Binaries 
 
-Shortbread can be built by simply executing the build script as shown below : 
+The binaries for shortbreadctl and the client are available in the Downloads folder. We currently provide binaries for OS X, Linux and Windows. 
+
+#### Build Instructions
+
+The Shortbread client can be built by simply executing the build-client script as shown below : 
+
+~~~shell
+./build-client
+~~~
+
+-----
+
+If you want to build both the client and the command line tool run the build script as shown below: 
 
 ~~~shell
 ./build
 ~~~
+
+-----
+
+If you want to make changes to the server and create an executable to test your changes you will need to execute the following commands: 
+
+~~~shell
+cd Godeps/_workspace/src/github.com/libgit2/git2go
+make install
+~~~
+
+You only need to execute the above commands once to build the `libgit2.a` file. After that you can just build the server by executing the build-server script: 
+
+~~~shell
+./build-server
+~~~ 
+
+All the build scripts will place the resulting executable in `shortbread/bin` 
+
 
 ---- 
 
